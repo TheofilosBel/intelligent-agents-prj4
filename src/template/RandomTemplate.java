@@ -20,8 +20,6 @@ import logist.task.TaskDistribution;
 import logist.task.TaskSet;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
-import model.VVehicle;
-import sls.StochasticLocalSearch;
 
 /**
  * A very simple auction agent that assigns all tasks to its first vehicle and
@@ -29,7 +27,7 @@ import sls.StochasticLocalSearch;
  *
  */
 @SuppressWarnings("unused")
-public class CentralizedTemplate implements CentralizedBehavior {
+public class RandomTemplate implements CentralizedBehavior {
 
     private Topology topology;
     private TaskDistribution distribution;
@@ -66,10 +64,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
 
 //		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
         Plan planVehicle1 = naivePlan(vehicles.get(0), tasks);
-
-        StochasticLocalSearch sls = new StochasticLocalSearch();
-        sls.dumbTest(VVehicle.toVVehicle(vehicles), tasks);
-
 
         List<Plan> plans = new ArrayList<Plan>();
         plans.add(planVehicle1);
