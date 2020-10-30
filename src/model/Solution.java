@@ -77,7 +77,8 @@ public class Solution {
 
 
     /**
-     * Check if task1's t1 supplementary action is in interval (t1Idx, t2Idx].
+     * Check if task1's t1 supplementary action is in interval (t1Idx, t2Idx] or
+     * if task2's supplementary action is in interval [t1Idx, t2Idx)
      * If so return false.
      *
      * @NOTE: Deliver is the supplementary of pickUp and visa versa.
@@ -85,7 +86,8 @@ public class Solution {
      * @param t2
      */
     public boolean checkDeliverOrder(VarVehicle v,  int t1Idx, int t2Idx) {
-        if (this.nextTask.get(v).get(t1Idx).getRight() <= t2Idx) {
+        if ( this.nextTask.get(v).get(t1Idx).getRight() <= t2Idx  ||
+             this.nextTask.get(v).get(t2Idx).getRight() >= t1Idx  ) {
             return false;
         }
         else {
