@@ -7,10 +7,10 @@ import java.util.List;
 import logist.plan.Plan;
 import logist.task.Task;
 import logist.task.TaskSet;
-import model.VVehicle;
-import model.SubTask.Type;
+import model.VarVehicle;
+import model.VarTask.Type;
 import model.Solution;
-import model.SubTask;
+import model.VarTask;
 
 public class StochasticLocalSearch {
 
@@ -56,8 +56,8 @@ public class StochasticLocalSearch {
     /**
      * Run some tests
      */
-    public void dumbTest(List<VVehicle> vehicles, TaskSet tasks) {
-        VVehicle v = vehicles.get(0);
+    public void dumbTest(List<VarVehicle> vehicles, TaskSet tasks) {
+        VarVehicle v = vehicles.get(0);
 
         List<Task> ts = new ArrayList<>();
         int counter = 0;
@@ -87,7 +87,7 @@ public class StochasticLocalSearch {
     /**
      * Change the positions of two tasks with respect to their type {pickUp, Deliver}.
      */
-    private Solution changeTaskOrder(Solution solution, VVehicle v, int t1Idx, int t2Idx) throws AssertionError {
+    private Solution changeTaskOrder(Solution solution, VarVehicle v, int t1Idx, int t2Idx) throws AssertionError{
 
         // Check if swap is violating the constraints
         if (solution.checkDeliverOrder(v, t1Idx, t2Idx)) {
@@ -99,5 +99,23 @@ public class StochasticLocalSearch {
             throw new AssertionError("Delivery of T1 before T2");
         }
     }
+
+    // Assigns the first task of vehicle v1 to vehicle v2.
+    // private Solution changeVehicle(Solution solution, VarVehicle v1, VarVehicle v2) {
+    //     // Create a copy of the given solution.
+    //     Solution newSolution = new Solution(solution);
+
+    //     // Get the first task of vehicle v1.
+    //     Task task = solution.getFirstTaskOf(v1);
+
+    //     // Remove it from its list of tasks (in the new solution).
+    //     newSolution.removeFirstTaskOf(v1);
+
+    //     // Insert it as the first task of vehicle v2.
+    //     newSolution.insertFirstTaskTo(v2, task);
+    //     newSolution.updateTaskVehicle(task, v2);
+
+    //     return newSolution;
+    // }
 
 }
