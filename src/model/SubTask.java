@@ -19,7 +19,7 @@ public class SubTask {
 
 	@Override
     public String toString() {
-        return type + " " + task;
+        return type + " for " + task;
     }
 
 }

@@ -77,15 +77,15 @@ public class Solution {
 
 
     /**
-     * Check if task1's t1 supplementary action is between
-     * t1Idx and t2Idx and If so return false.
+     * Check if task1's t1 supplementary action is in interval (t1Idx, t2Idx].
+     * If so return false.
      *
      * @NOTE: Deliver is the supplementary of pickUp and visa versa.
      * @param t1
      * @param t2
      */
     public boolean checkDeliverOrder(VarVehicle v,  int t1Idx, int t2Idx) {
-        if (this.nextTask.get(v).get(t1Idx).getRight() < t2Idx) {
+        if (this.nextTask.get(v).get(t1Idx).getRight() <= t2Idx) {
             return false;
         }
         else {
@@ -99,7 +99,7 @@ public class Solution {
     public void swapSubTasksFor(VarVehicle v, int t1Idx, int t2Idx) {
         // before swapping remember to change the indexes of the supplementary tasks
         int supt1Idx = this.nextTask.get(v).get(t1Idx).getRight();
-        int supt2Idx = this.nextTask.get(v).get(t1Idx).getRight();
+        int supt2Idx = this.nextTask.get(v).get(t2Idx).getRight();
 
         // Swap the indexes of the sup tasks to show to the new indices
         if (supt1Idx != -1) {
@@ -121,7 +121,7 @@ public class Solution {
             this.nextTask.get(v).get(supt2Idx).setRight(t1Idx);
         }
 
-        Collections.swap(this.nextTask.get(v), t1Idx, t1Idx);
+        Collections.swap(this.nextTask.get(v), t1Idx, t2Idx);
     }
 
     // Returns the first task of the given vehicle.

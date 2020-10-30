@@ -66,6 +66,9 @@ public class StochasticLocalSearch {
         }
 
 
+
+        System.out.println(s);
+        s = changeTaskOrder(s, v, 0, 1);
         System.out.println(s);
     }
 
