@@ -59,9 +59,20 @@ public class StochasticLocalSearch {
     public void dumbTest(List<VVehicle> vehicles, TaskSet tasks) {
         VVehicle v = vehicles.get(0);
 
+        List<Task> ts = new ArrayList<>();
+        int counter = 0;
+        for (Task t: tasks) {
+            counter++;
+            if ( counter <tasks.size() - 4)
+                ts.add(t);
+        }
+        tasks.removeAll(ts);
+
         Solution s = new Solution();
         for (Task t : tasks) {
             s.addSubTask(v, new SubTask(t, Type.PickUp));
+        }
+        for (Task t : tasks) {
             s.addSubTask(v, new SubTask(t, Type.Delivery));
         }
 
@@ -76,7 +87,7 @@ public class StochasticLocalSearch {
     /**
      * Change the positions of two tasks with respect to their type {pickUp, Deliver}.
      */
-    private Solution changeTaskOrder(Solution solution, VVehicle v, int t1Idx, int t2Idx) throws AssertionError{
+    private Solution changeTaskOrder(Solution solution, VVehicle v, int t1Idx, int t2Idx) throws AssertionError {
 
         // Check if swap is violating the constraints
         if (solution.checkDeliverOrder(v, t1Idx, t2Idx)) {
