@@ -20,7 +20,7 @@ import logist.task.TaskDistribution;
 import logist.task.TaskSet;
 import logist.topology.Topology;
 import logist.topology.Topology.City;
-import model.VVehicle;
+import model.VarVehicle;
 import sls.StochasticLocalSearch;
 
 /**
@@ -68,7 +68,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         Plan planVehicle1 = naivePlan(vehicles.get(0), tasks);
 
         StochasticLocalSearch sls = new StochasticLocalSearch();
-        sls.dumbTest(VVehicle.toVVehicle(vehicles), tasks);
+        sls.dumbTest(VarVehicle.toVarVehicle(vehicles), tasks);
 
 
         List<Plan> plans = new ArrayList<Plan>();

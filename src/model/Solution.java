@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-import model.SubTask.Type;
+import model.VarTask.Type;
 import utils.Pair;
 
 public class Solution {
@@ -14,15 +14,15 @@ public class Solution {
     // For each vehicle store a list of subTasks with the order they should get executed.
     // Each item of the list stores the subTask along with an index to its supplementary subTask
     // (if pickup the index points to the delivery and if delivery the index points to pickup)
-    private HashMap<VVehicle, List<Pair<SubTask, Integer>>> nextTask = new HashMap<>();
+    private HashMap<VarVehicle, List<Pair<VarTask, Integer>>> nextTask = new HashMap<>();
 
-    HashMap<SubTask, VVehicle> taskVehicles; // Maps tasks to the vehicles that carry them.
+    HashMap<VarTask, VarVehicle> taskVehicles; // Maps tasks to the vehicles that carry them.
 
     public Solution() {}
 
     /** Copy constructor */
     public Solution(Solution toCopy) {
-        for (Entry<VVehicle, List<Pair<SubTask, Integer>>> entry: toCopy.nextTask.entrySet()) {
+        for (Entry<VarVehicle, List<Pair<VarTask, Integer>>> entry: toCopy.nextTask.entrySet()) {
             this.nextTask.put( entry.getKey(), new ArrayList<>(entry.getValue()) );
         }
     }
@@ -33,8 +33,8 @@ public class Solution {
      * @param v The vehicle
      * @param t The task
      */
-    public void addSubTask(VVehicle v, SubTask t) {
-        List< Pair<SubTask, Integer>> tasks = this.nextTask.get(v);
+    public void addSubTask(VarVehicle v, VarTask t) {
+        List< Pair<VarTask, Integer>> tasks = this.nextTask.get(v);
 
         // If list empty create a new list
         if (tasks == null) {
@@ -52,7 +52,7 @@ public class Solution {
             // Loop all subTasks
             boolean foundPickUp = false;
             for (int idx = 0; idx < tasks.size(); idx++) {
-                Pair<SubTask, Integer> pair = tasks.get(idx);
+                Pair<VarTask, Integer> pair = tasks.get(idx);
 
                 // Find the one that holds the same task as t
                 if (pair.getLeft().task.id == t.task.id) {
@@ -84,7 +84,7 @@ public class Solution {
      * @param t1
      * @param t2
      */
-    public boolean checkDeliverOrder(VVehicle v,  int t1Idx, int t2Idx) {
+    public boolean checkDeliverOrder(VarVehicle v,  int t1Idx, int t2Idx) {
         if (this.nextTask.get(v).get(t1Idx).getRight() < t2Idx) {
             return false;
         }
@@ -96,7 +96,7 @@ public class Solution {
     /**
      * Swaps the two indexes in the list of tasks for vehicle v
      */
-    public void swapSubTasksFor(VVehicle v, int t1Idx, int t2Idx) {
+    public void swapSubTasksFor(VarVehicle v, int t1Idx, int t2Idx) {
         // before swapping remember to change the indexes of the supplementary tasks
         int supt1Idx = this.nextTask.get(v).get(t1Idx).getRight();
         int supt2Idx = this.nextTask.get(v).get(t1Idx).getRight();
@@ -125,24 +125,24 @@ public class Solution {
     }
 
     // Returns the first task of the given vehicle.
-    public SubTask getFirstTaskOf(VVehicle vehicle) {
-        return nextTask.get(vehicle).get(0);
-    }
+    // public VarTask getFirstTaskOf(VarVehicle vehicle) {
+    //     return nextTask.get(vehicle).get(0);
+    // }
 
     // Removes the first task of the given vehicle.
-    public void removeFirstTaskOf(VVehicle vehicle) {
-        nextTask.get(vehicle).remove(0);
-    }
+    // public void removeFirstTaskOf(VarVehicle vehicle) {
+    //     nextTask.get(vehicle).remove(0);
+    // }
 
     // Insert the given task as the first one in the list of the given vehicle.
-    public void insertFirstTaskTo(VVehicle vehicle, SubTask task) {
-        nextTask.get(vehicle).add(0, task);
-    }
+    // public void insertFirstTaskTo(VarVehicle vehicle, VarTask task) {
+    //     nextTask.get(vehicle).add(0, task);
+    // }
 
     // Updates the vehicles of the given task in the map.
-    public void updateTaskVehicle(SubTask task, VVehicle vehicle) {
-        taskVehicles.put(task, vehicle);
-    }
+    // public void updateTaskVehicle(VarTask task, VarVehicle vehicle) {
+    //     taskVehicles.put(task, vehicle);
+    // }
 
     public double cost(){
         return 0d;
@@ -151,7 +151,7 @@ public class Solution {
     @Override
     public String toString() {
         String str = "Solution:\n";
-        for (Entry<VVehicle, List<Pair<SubTask, Integer>>> entry: this.nextTask.entrySet()) {
+        for (Entry<VarVehicle, List<Pair<VarTask, Integer>>> entry: this.nextTask.entrySet()) {
             str += entry.getKey() + ": " + entry.getValue() + "\n";
         }
         return str;
