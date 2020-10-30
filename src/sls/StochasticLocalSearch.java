@@ -70,10 +70,10 @@ public class StochasticLocalSearch {
 
         Solution s = new Solution();
         for (Task t : tasks) {
-            s.addSubTask(v, new SubTask(t, Type.PickUp));
+            s.addSubTask(v, new VarTask(t, Type.PickUp));
         }
         for (Task t : tasks) {
-            s.addSubTask(v, new SubTask(t, Type.Delivery));
+            s.addSubTask(v, new VarTask(t, Type.Delivery));
         }
 
 
