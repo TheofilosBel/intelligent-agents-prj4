@@ -38,4 +38,8 @@ public class VarVehicle {
     public Integer capacity() {
         return capacity;
     }
+
+    public Integer costPerKm() {
+        return costPerKm;
+    }
 }

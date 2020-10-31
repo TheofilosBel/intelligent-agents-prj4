@@ -27,7 +27,11 @@ public class Solution {
     /** Copy constructor */
     public Solution(Solution toCopy) {
         for (Entry<VarVehicle, List<Pair<VarTask, Integer>>> entry: toCopy.nextTask.entrySet()) {
-            this.nextTask.put(entry.getKey(), new ArrayList<>(entry.getValue()) );
+            List<Pair<VarTask, Integer>> copyTasks = new ArrayList<>();
+            for (Pair<VarTask, Integer> pair: entry.getValue()) {
+                copyTasks.add(new Pair<>(pair));
+            }
+            this.nextTask.put(entry.getKey(), copyTasks);
         }
     }
 
@@ -35,7 +39,11 @@ public class Solution {
      * Return the 1st {@link VarTask} set to be executed for a {@link VarVehicle}
      */
     public VarTask getNextTask(VarVehicle v) {
-        return this.nextTask.get(v).get(0).getLeft();
+        if (this.nextTask.get(v).isEmpty()) {
+            return null;
+        } else {
+            return this.nextTask.get(v).get(0).getLeft();
+        }
     }
 
     public Integer getTasksSize(VarVehicle v) {
@@ -130,14 +138,12 @@ public class Solution {
         Integer supT1Idx = this.nextTask.get(v).get(t1Idx).getRight();
         Integer supT2Idx = this.nextTask.get(v).get(t2Idx).getRight();
 
-        // First check the intervals (faster)
+        // Check the intervals
         if ( (supT1Idx <= t2Idx && supT1Idx > t1Idx) || (supT2Idx >= t1Idx && supT2Idx < t2Idx)) {
             return false;
+        } else {
+            return true;
         }
-
-        // Then check weights in those 3 cases:
-        //  1.
-        return false;
     }
 
     /**
@@ -204,8 +210,27 @@ public class Solution {
         taskVehicles.put(task, vehicle);
     }
 
-    public double cost(){
-        return 0d;
+    /**
+     * Return the total cost of a solutions.
+     *
+     * For each vehicle count the total kms required to execute the VarTasks assigned to it. Use the
+     * as distance between two VarTasks the shortest distance between their cities.
+     *
+     * Then multiply the vehicle's distance with its costPerKm and sum up all the costs for all vehicles.
+     */
+    public double cost() {
+        Double totalCost = 0D;
+        for (Entry<VarVehicle, List<Pair<VarTask, Integer>>> entry: nextTask.entrySet()) {
+            // Loop all the tasks in a vehicle
+            Double vehicleCost = 0D;
+            for (int idx = 0; idx < entry.getValue().size() - 2; idx++) { // -2 because we dont want the last element
+                VarTask task = entry.getValue().get(idx).getLeft();
+                VarTask nextTask = entry.getValue().get(idx + 1).getLeft();
+                vehicleCost += task.city().distanceTo(nextTask.city());
+            }
+            totalCost += vehicleCost * entry.getKey().costPerKm();
+        }
+        return totalCost;
     }
 
     @Override
@@ -217,4 +242,22 @@ public class Solution {
         return str;
     }
 
+
+    // ! Debug
+    /**
+     * Checks all the indexes in the pairs if they are correct
+     */
+    public void checkSupps() {
+        for (Entry<VarVehicle, List<Pair<VarTask, Integer>>> entry: nextTask.entrySet()) {
+
+            for (int idx = 0; idx < entry.getValue().size() - 1; idx++) {
+                int supIdx = entry.getValue().get(idx).getRight();
+                VarTask task    = entry.getValue().get(idx).getLeft();
+                VarTask supTask = entry.getValue().get(supIdx).getLeft();
+
+                if (task.task.id != supTask.task.id)
+                    throw new AssertionError("Miss indexed tasks");
+            }
+        }
+    }
 }

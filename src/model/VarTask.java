@@ -1,6 +1,7 @@
 package model;
 
 import logist.task.Task;
+import logist.topology.Topology.City;
 
 /**
  * This class represents the vehicle variable in the COP
@@ -22,7 +23,19 @@ public class VarTask {
      * @return
      */
     public int weight() {
-        return this.task.weight;
+        return task.weight;
+    }
+
+    /**
+     * Get the pickUp city if type is PickUp
+     * or delivery city if type is Delivery
+     */
+    public City city() {
+        if (type == Type.PickUp) {
+            return task.pickupCity;
+        } else {
+            return task.deliveryCity;
+        }
     }
 
 

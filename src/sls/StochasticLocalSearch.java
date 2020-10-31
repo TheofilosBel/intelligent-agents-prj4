@@ -51,10 +51,9 @@ public class StochasticLocalSearch {
 
         // Get a random vehicle that holds a task (nextTask != Null)
         VarVehicle randVehicle = null;
-        VarTask nexTaskRand = null;  // TODO Orest do you need the next task?
         do {
             randVehicle = vehicles.get( randGen.nextInt(vehicles.size()) );
-        } while ( (nexTaskRand = solution.getNextTask(randVehicle)) != null );
+        } while (solution.getNextTask(randVehicle) == null);
 
         // Operation 1:
         // Create one new solution by transferring the randVehicles next task to all other vehicles
@@ -75,6 +74,7 @@ public class StochasticLocalSearch {
                 if (solution.checkPickUpDeliverOrder(randVehicle, outerIdx, innerIdx)) {
                     Solution newSolution = new Solution(solution);
                     newSolution.swapVarTasksFor(randVehicle, outerIdx, innerIdx);
+                    newSolution.checkSupps(); // ! Debug
 
                     // Check if the weight constraints are satisfied
                     if (newSolution.checkCapacityConstraint(randVehicle)) {
@@ -86,6 +86,8 @@ public class StochasticLocalSearch {
 
         return neighbors;
     }
+
+
 
     public Solution createInitialSolution() {
         return null;
@@ -109,28 +111,15 @@ public class StochasticLocalSearch {
         Solution s = new Solution(vehicles);
         for (Task t : tasks) {
             s.addVarTask(v, new VarTask(t, Type.PickUp));
-        }
-        for (Task t : tasks) {
             s.addVarTask(v, new VarTask(t, Type.Delivery));
         }
 
+        SplittableRandom randGen = new SplittableRandom(1);
+
+        // Loop until solution good enough
+        List<Solution> neighbors = chooseNeighbors(s, vehicles, randGen);
 
 
-        System.out.println(s);
-        s = changeTaskOrder(s, v, 0, 1);
-        System.out.println(s);
-    }
-
-
-    /**
-     * Change the positions of two tasks with respect to their type {pickUp, Deliver}.
-     */
-    private Solution changeTaskOrder(Solution solution, VarVehicle v, int t1Idx, int t2Idx) throws AssertionError{
-
-
-
-        // Constraints where not satisfied
-        return null;
     }
 
     /**
@@ -154,11 +143,6 @@ public class StochasticLocalSearch {
         newSolution.updateTaskVehicle(taskDelivery, v2);
 
         return newSolution;
-    }
-
-
-    public static void main(String[] args) {
-
     }
 
 }
