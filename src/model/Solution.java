@@ -34,8 +34,28 @@ public class Solution {
         return this.nextTask.get(v).get(0).getLeft();
     }
 
+    /**
+     * Check the if the stream of tasks in vehicle v satisfies it's capacity
+     * constraint in each step.
+     *
+     * @param v
+     * @return
+     */
     public boolean checkCapacityConstraint(VarVehicle v) {
-        return false;
+        Integer currentWeight = 0;
+        for (Pair<VarTask, Integer> pair: this.nextTask.get(v)) {
+
+            if (pair.getLeft().type == Type.PickUp) {
+                currentWeight += pair.getLeft().weight();
+            } else {
+                currentWeight -= pair.getLeft().weight();
+            }
+
+            if (currentWeight > v.capacity()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

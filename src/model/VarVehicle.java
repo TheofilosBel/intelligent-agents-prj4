@@ -10,8 +10,8 @@ import logist.simulation.Vehicle;
  */
 public class VarVehicle {
 
-    Integer capacity;
-    Integer costPerKm;
+    private Integer capacity;
+    private Integer costPerKm;
 
     public VarVehicle(Integer capacity, Integer costPerKm) {
         this.capacity = capacity;
@@ -33,5 +33,9 @@ public class VarVehicle {
             ourVehicles.add(new VarVehicle(v.capacity(), v.costPerKm()));
         }
         return ourVehicles;
+    }
+
+    public Integer capacity() {
+        return capacity;
     }
 }

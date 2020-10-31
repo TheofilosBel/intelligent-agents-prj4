@@ -17,6 +17,10 @@ public class VarTask {
         this.task = task;
     }
 
+    /**
+     * Return the task's weight
+     * @return
+     */
     public int weight() {
         return this.task.weight;
     }
