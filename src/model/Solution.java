@@ -182,7 +182,7 @@ public class Solution {
     // Returns a pair containing a task and its supplementary task for a vehicle.
     public Pair<VarTask, VarTask> getTaskAndSupplementaryAt(VarVehicle v, int index) {
         // Get the tasks of the vehicle
-        List<Pair<VarTask, Integer>> tasks = this.nextTask.get(v);
+        List<Pair<VarTask, Integer>> tasks = nextTask.get(v);
 
         // Get the index of the supplementary task
         int supIndex = tasks.get(index).getRight();
@@ -194,7 +194,7 @@ public class Solution {
     // Removes the given pair of task sfor the vehicle at the given index.
     public void removeTaskAndSupplementaryAt(VarVehicle v, Pair<VarTask, VarTask> pair, int index) {
         // Get the tasks of the vehicle
-        List<Pair<VarTask, Integer>> tasks = this.nextTask.get(v);
+        List<Pair<VarTask, Integer>> tasks = nextTask.get(v);
 
         // Get the index of the supplementary task
         int supIndex = tasks.get(index).getRight();
@@ -202,6 +202,9 @@ public class Solution {
         // Remove the task and its supplementary task
         tasks.remove(index);
         tasks.remove(supIndex-1); // -1 because we removed one element already
+
+        // Update the supplementary indices of each task
+        updateIndicesAfterRemove(tasks, index, supIndex-1);
     }
 
     // Inserts the given pair of tasks for the vehicle at the given index.
@@ -209,6 +212,33 @@ public class Solution {
         // Add the two tasks back-to-back in the list of the vehicle
         nextTask.get(v).add(index, new Pair<VarTask, Integer>(pair.getLeft(), index + 1));
         nextTask.get(v).add(index + 1, new Pair<VarTask, Integer>(pair.getRight(), index));
+
+        // Update the supplementary indices of each subsequent task
+        updateIndicesAfterAdd(nextTask.get(v));
+    }
+
+    // Updates the supplementary index of each task after a removal.
+    // The new values depend on where each task is located compared to t1idx and t2idx (indices of removed tasks).
+    private void updateIndicesAfterRemove(List<Pair<VarTask, Integer>> tasks, int t1idx, int t2idx) {
+        for (int idx = 0; idx < tasks.size(); idx++) {
+            Pair<VarTask, Integer> pair = tasks.get(idx);
+
+            if (pair.getRight() > t1idx && pair.getRight() < t2idx) {
+                pair.setRight(pair.getRight()-1);
+            }
+            else if (pair.getRight() > t2idx) {
+                pair.setRight(pair.getRight()-2);
+            }
+        }
+    }
+
+    // Updates the supplementary index of each task after an addition.
+    // Basically, adds 2 to the index of each task except the first two (which were added).
+    private void updateIndicesAfterAdd(List<Pair<VarTask, Integer>> tasks) {
+        for (int idx = 2; idx < tasks.size(); idx++) {
+            Pair<VarTask, Integer> pair = tasks.get(idx);
+            pair.setRight(pair.getRight()+2);
+        }
     }
 
     // Updates the vehicles of the given task in the map.
