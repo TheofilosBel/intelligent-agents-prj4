@@ -11,19 +11,19 @@ import utils.Pair;
 
 public class Solution {
 
-    // For each vehicle store a list of subTasks with the order they should get executed.
-    // Each item of the list stores the subTask along with an index to its supplementary subTask
-    // (if pickup the index points to the delivery and if delivery the index points to pickup)
+    // For each vehicle store a list of tasks with the order they should get executed.
+    // Each item of the list stores the task along with an index to its supplementary task
+    // (if pickup the index points to the delivery and if delivery the index points to pickup).
     private HashMap<VarVehicle, List<Pair<VarTask, Integer>>> nextTask = new HashMap<>();
 
-    HashMap<VarTask, VarVehicle> taskVehicles; // Maps tasks to the vehicles that carry them.
+    HashMap<VarTask, VarVehicle> taskVehicles; // Maps tasks to the vehicles that carry them
 
     public Solution() {}
 
     /** Copy constructor */
     public Solution(Solution toCopy) {
         for (Entry<VarVehicle, List<Pair<VarTask, Integer>>> entry: toCopy.nextTask.entrySet()) {
-            this.nextTask.put( entry.getKey(), new ArrayList<>(entry.getValue()) );
+            this.nextTask.put(entry.getKey(), new ArrayList<>(entry.getValue()) );
         }
     }
 
@@ -34,14 +34,13 @@ public class Solution {
      * @param t The task
      */
     public void addSubTask(VarVehicle v, VarTask t) {
-        List< Pair<VarTask, Integer>> tasks = this.nextTask.get(v);
+        List<Pair<VarTask, Integer>> tasks = this.nextTask.get(v);
 
         // If list empty create a new list
         if (tasks == null) {
             tasks = new ArrayList<>();
             this.nextTask.put(v, tasks);
         }
-
 
         // If task is pickUp simply append it in the list
         if (t.type == Type.PickUp) {
@@ -56,10 +55,10 @@ public class Solution {
 
                 // Find the one that holds the same task as t
                 if (pair.getLeft().task.id == t.task.id) {
-                    pair.setRight( tasks.size() );  // Add as index the size, witch will be the new index of t
+                    pair.setRight( tasks.size() );  // Add as index the size, which will be the new index of t
                     tasks.add(new Pair<>(t, idx));
 
-                    // ! Debug
+                    // DEBUG:
                     if (pair.getLeft().type == Type.Delivery)
                         throw new AssertionError("Adding two delivery tasks for: " + t.task);
 
@@ -69,7 +68,7 @@ public class Solution {
                 }
             }
 
-            // ! Debug
+            // DEBUG:
             if (!foundPickUp)
                 throw new AssertionError("Delivery Task not found for: " + t.task);
         }
@@ -77,10 +76,10 @@ public class Solution {
 
 
     /**
-     * Check if task1's t1 supplementary action is in interval (t1Idx, t2Idx].
+     * Check if task1's supplementary action is in the interval (t1Idx, t2Idx].
      * If so return false.
      *
-     * @NOTE: Deliver is the supplementary of pickUp and visa versa.
+     * @NOTE: Deliver is the supplementary of pickup and vice versa.
      * @param t1
      * @param t2
      */
@@ -94,7 +93,7 @@ public class Solution {
     }
 
     /**
-     * Swaps the two indexes in the list of tasks for vehicle v
+     * Swaps the two task at the given indexes for vehicle v
      */
     public void swapSubTasksFor(VarVehicle v, int t1Idx, int t2Idx) {
         // before swapping remember to change the indexes of the supplementary tasks
@@ -103,7 +102,6 @@ public class Solution {
 
         // Swap the indexes of the sup tasks to show to the new indices
         if (supt1Idx != -1) {
-
             // ! Debug
             if (this.nextTask.get(v).get(supt1Idx).getLeft().task.id != this.nextTask.get(v).get(t1Idx).getLeft().task.id) {
                 throw new AssertionError("Bad mapping between pick up and delivery tasks");
@@ -112,7 +110,6 @@ public class Solution {
             this.nextTask.get(v).get(supt1Idx).setRight(t2Idx);
         }
         if (supt2Idx != -1) {
-
             // ! Debug
             if (this.nextTask.get(v).get(supt2Idx).getLeft().task.id != this.nextTask.get(v).get(t2Idx).getLeft().task.id) {
                 throw new AssertionError("Bad mapping between pick up and delivery tasks");
@@ -124,25 +121,43 @@ public class Solution {
         Collections.swap(this.nextTask.get(v), t1Idx, t2Idx);
     }
 
-    // Returns the first task of the given vehicle.
-    // public VarTask getFirstTaskOf(VarVehicle vehicle) {
-    //     return nextTask.get(vehicle).get(0);
-    // }
+    // Returns a pair containing a task and its supplementary task for a vehicle.
+    public Pair<VarTask, VarTask> getTaskAndSupplementaryAt(VarVehicle v, int index) {
+        // Get the tasks of the vehicle
+        List<Pair<VarTask, Integer>> tasks = this.nextTask.get(v);
 
-    // Removes the first task of the given vehicle.
-    // public void removeFirstTaskOf(VarVehicle vehicle) {
-    //     nextTask.get(vehicle).remove(0);
-    // }
+        // Get the index of the supplementary task
+        int supIndex = tasks.get(index).getRight();
+
+        // Create a pair containing a task and its supplementary task
+        Pair<VarTask, VarTask> pair = new Pair<>(tasks.get(index).getLeft(), tasks.get(supIndex).getLeft());
+
+        // Remove the two tasks from the list
+        removeTaskAt(v, index);
+        removeTaskAt(v, supIndex);
+
+        return pair;
+    }
+
+    // Returns the first task of the given vehicle.
+    public VarTask getFirstTaskOf(VarVehicle v) {
+        return nextTask.get(v).get(0).getLeft();
+    }
+
+    // Removes the task of a vehicle at the given postition in the list.
+    public void removeTaskAt(VarVehicle v, int position) {
+        nextTask.get(v).remove(position);
+    }
 
     // Insert the given task as the first one in the list of the given vehicle.
-    // public void insertFirstTaskTo(VarVehicle vehicle, VarTask task) {
-    //     nextTask.get(vehicle).add(0, task);
-    // }
+    public void addTaskAt(VarVehicle v, VarTask t, int position) {
+        nextTask.get(v).add(position, new Pair<>(t, 0));
+    }
 
     // Updates the vehicles of the given task in the map.
-    // public void updateTaskVehicle(VarTask task, VarVehicle vehicle) {
-    //     taskVehicles.put(task, vehicle);
-    // }
+    public void updateTaskVehicle(VarTask task, VarVehicle vehicle) {
+        taskVehicles.put(task, vehicle);
+    }
 
     public double cost(){
         return 0d;
@@ -156,4 +171,5 @@ public class Solution {
         }
         return str;
     }
+
 }

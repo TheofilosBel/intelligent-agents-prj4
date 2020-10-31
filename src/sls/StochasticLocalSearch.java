@@ -11,6 +11,7 @@ import model.VarVehicle;
 import model.VarTask.Type;
 import model.Solution;
 import model.VarTask;
+import utils.Pair;
 
 public class StochasticLocalSearch {
 
@@ -51,7 +52,6 @@ public class StochasticLocalSearch {
     public Solution createInitialSolution() {
         return null;
     }
-
 
     /**
      * Run some tests
@@ -100,22 +100,27 @@ public class StochasticLocalSearch {
         }
     }
 
-    // Assigns the first task of vehicle v1 to vehicle v2.
-    // private Solution changeVehicle(Solution solution, VarVehicle v1, VarVehicle v2) {
-    //     // Create a copy of the given solution.
-    //     Solution newSolution = new Solution(solution);
+    /**
+     * Assigns the first task of vehicle v1 to vehicle v2. Also moves its supplementary task (always a delivery).
+     */
+    private Solution changeVehicle(Solution solution, VarVehicle v1, VarVehicle v2) {
+        // Create a copy of the old solution.
+        Solution newSolution = new Solution(solution);
 
-    //     // Get the first task of vehicle v1.
-    //     Task task = solution.getFirstTaskOf(v1);
+        // Get the first task of vehicle v1 and its supplementary.
+        Pair<VarTask, VarTask> taskPair = solution.getTaskAndSupplementaryAt(v1, 0);
+        VarTask taskPickUp = taskPair.getLeft();
+        VarTask taskDelivery = taskPair.getRight();
 
-    //     // Remove it from its list of tasks (in the new solution).
-    //     newSolution.removeFirstTaskOf(v1);
+        // Insert the pickUp as the first task of vehicle v2 and the delivery as the second.
+        newSolution.addTaskAt(v2, taskPickUp, 0);
+        newSolution.addTaskAt(v2, taskDelivery, 1);
 
-    //     // Insert it as the first task of vehicle v2.
-    //     newSolution.insertFirstTaskTo(v2, task);
-    //     newSolution.updateTaskVehicle(task, v2);
+        // Update the vehicles of the tasks
+        newSolution.updateTaskVehicle(taskPickUp, v2);
+        newSolution.updateTaskVehicle(taskDelivery, v2);
 
-    //     return newSolution;
-    // }
+        return newSolution;
+    }
 
 }
