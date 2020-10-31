@@ -64,17 +64,17 @@ public class CentralizedTemplate implements CentralizedBehavior {
     public List<Plan> plan(List<Vehicle> vehicles, TaskSet tasks) {
         long time_start = System.currentTimeMillis();
 
-//		System.out.println("Agent " + agent.id() + " has tasks " + tasks);
-        Plan planVehicle1 = naivePlan(vehicles.get(0), tasks);
-
+        // our dumb
         StochasticLocalSearch sls = new StochasticLocalSearch();
-        sls.dumbTest(VarVehicle.toVarVehicle(vehicles), tasks);
+        List<Plan> plans = sls.dumbTest(VarVehicle.toVarVehicle(vehicles), tasks);
 
-        List<Plan> plans = new ArrayList<Plan>();
-        plans.add(planVehicle1);
-        while (plans.size() < vehicles.size()) {
-            plans.add(Plan.EMPTY);
-        }
+        // theirs
+        // Plan planVehicle1 = naivePlan(vehicles.get(0), tasks);
+        // List<Plan> plans = new ArrayList<Plan>();
+        // plans.add(planVehicle1);
+        // while (plans.size() < vehicles.size()) {
+        //     plans.add(Plan.EMPTY);
+        // }
 
         long time_end = System.currentTimeMillis();
         long duration = time_end - time_start;

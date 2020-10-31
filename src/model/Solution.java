@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import logist.plan.Plan;
+import logist.task.TaskSet;
+import logist.topology.Topology.City;
 import model.VarTask.Type;
 import utils.Pair;
 
@@ -246,16 +249,26 @@ public class Solution {
     /**
      * Return the total cost of a solutions.
      *
-     * For each vehicle count the total kms required to execute the VarTasks assigned to it. Use the
-     * as distance between two VarTasks the shortest distance between their cities.
+     * For each vehicle count the total kms required to execute the VarTasks assigned to it.
+     * Use as distance between two VarTasks the shortest distance between their cities.
+     * In the score consider also the path from vehicle's task city to the first task's city.
      *
      * Then multiply the vehicle's distance with its costPerKm and sum up all the costs for all vehicles.
      */
     public double cost() {
         Double totalCost = 0D;
         for (Entry<VarVehicle, List<Pair<VarTask, Integer>>> entry: nextTask.entrySet()) {
-            // Loop all the tasks in a vehicle
             Double vehicleCost = 0D;
+
+            // skip vehicles with no tasks
+            if (this.getNextTask(entry.getKey()) == null) {
+                continue;
+            }
+
+            // Add the starting cost from the vehicle's start city to the first task
+            vehicleCost = entry.getKey().startCity().distanceTo( this.getNextTask(entry.getKey()).city());
+
+            // Loop all the tasks in a vehicle
             for (int idx = 0; idx < entry.getValue().size() - 2; idx++) { // -2 because we dont want the last element
                 VarTask task = entry.getValue().get(idx).getLeft();
                 VarTask nextTask = entry.getValue().get(idx + 1).getLeft();
@@ -264,6 +277,56 @@ public class Solution {
             totalCost += vehicleCost * entry.getKey().costPerKm();
         }
         return totalCost;
+    }
+
+
+    /**
+     * Create a plan for each vehicle and return a list of all the plans
+     * with respect to the order of the list Vehicle passed as parameter
+     * @return
+     */
+    public List<Plan> toPlans(List<VarVehicle> vehicles) {
+        List<Plan> plans = new ArrayList<>();
+        for (VarVehicle vehicle: vehicles) {
+            // Create a plan for each vehicle
+            if (this.getNextTask(vehicle) == null) {
+                plans.add(Plan.EMPTY);
+            }
+            else {
+                // Stat to the vehicle's start city
+                Plan plan = new Plan(vehicle.startCity());
+
+                // Move from vehicle's stat city to first task's city
+                for (City cityInPath: vehicle.startCity().pathTo(this.getNextTask(vehicle).city())) {
+                    plan.appendMove(cityInPath);
+                }
+
+                // Make all the plan actions
+                for (int idx = 0; idx < this.getTasksSize(vehicle); idx++) {
+                    VarTask task = this.nextTask.get(vehicle).get(idx).getLeft();
+
+                    // First look if task is pickup / deliver and apply the action
+                    if (task.type == Type.PickUp) {
+                        plan.appendPickup(task.task);
+                    }
+                    else {
+                        plan.appendDelivery(task.task);
+                    }
+
+                    // Then if task has next task in the list, move nextTask's city
+                    if (idx < this.getTasksSize(vehicle) - 1) {
+                        City nextTaskCity = this.nextTask.get(vehicle).get(idx + 1).getLeft().city();
+                        for (City cityInPath: task.city().pathTo(nextTaskCity)) {
+                            plan.appendMove(cityInPath);
+                        }
+                    }
+                }
+
+                plans.add(plan);
+            }
+        }
+
+        return plans;
     }
 
     @Override
