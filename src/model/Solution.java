@@ -15,6 +15,7 @@ public class Solution {
     // Each item of the list stores the subTask along with an index to its supplementary subTask
     // (if pickup the index points to the delivery and if delivery the index points to pickup)
     private HashMap<VarVehicle, List<Pair<VarTask, Integer>>> nextTask = new HashMap<>();
+    private HashMap<VarVehicle, List<Integer>> vehicleLoad = new HashMap<>();
 
     HashMap<VarTask, VarVehicle> taskVehicles; // Maps tasks to the vehicles that carry them.
 
@@ -28,6 +29,13 @@ public class Solution {
     }
 
     /**
+     * Return the 1st {@link VarTask} set to be executed for a {@link VarVehicle}
+     */
+    public VarTask getNextTaskFor(VarVehicle v) {
+        return this.nextTask.get(v).get(0).getLeft();
+    }
+
+    /**
      * Adds the subTask to the end of the ordered list of the vehicles tasks
      *
      * @param v The vehicle
@@ -35,17 +43,30 @@ public class Solution {
      */
     public void addSubTask(VarVehicle v, VarTask t) {
         List< Pair<VarTask, Integer>> tasks = this.nextTask.get(v);
+        List<Integer> weightsInTime = vehicleLoad.get(v);
 
         // If list empty create a new list
         if (tasks == null) {
             tasks = new ArrayList<>();
             this.nextTask.put(v, tasks);
+            weightsInTime = new ArrayList<>();
+            this.vehicleLoad.put(v, weightsInTime);
         }
 
 
         // If task is pickUp simply append it in the list
         if (t.type == Type.PickUp) {
             tasks.add(new Pair<>(t, -1));  // -1 because we dont have the supplementary sub Task yet
+
+            // Add the weight to the current time
+            if (weightsInTime.isEmpty()) {
+                weightsInTime.add(t.weight());
+            } else {
+                weightsInTime.add(weightsInTime.get(weightsInTime.size() - 1) + t.weight());  // There is idx - 1 for sure
+            }
+
+            // ! Debug
+
         }
         // If delivery then search for the supplementary pick up and bind them
         else {
@@ -58,6 +79,9 @@ public class Solution {
                 if (pair.getLeft().task.id == t.task.id) {
                     pair.setRight( tasks.size() );  // Add as index the size, witch will be the new index of t
                     tasks.add(new Pair<>(t, idx));
+
+                    // Update the weight: Remove the tasks weight
+                    weightsInTime.add(weightsInTime.get(weightsInTime.size() - 1) - t.weight());
 
                     // ! Debug
                     if (pair.getLeft().type == Type.Delivery)
@@ -77,26 +101,36 @@ public class Solution {
 
 
     /**
-     * Check if task1's t1 supplementary action is in interval (t1Idx, t2Idx] or
-     * if task2's supplementary action is in interval [t1Idx, t2Idx)
-     * If so return false.
+     * Check 2 tings:
+     * 1. If task1's t1 supplementary action is in interval (t1Idx, t2Idx] or
+     *    if task2's supplementary action is in interval [t1Idx, t2Idx)
+     * 2. if swapping will result in an overload of the capacity of the vehicle.
+     *
+     * If one of the above holds, return false
      *
      * @NOTE: Deliver is the supplementary of pickUp and visa versa.
      * @param t1
      * @param t2
      */
     public boolean checkDeliverOrder(VarVehicle v,  int t1Idx, int t2Idx) {
-        if ( this.nextTask.get(v).get(t1Idx).getRight() <= t2Idx  ||
-             this.nextTask.get(v).get(t2Idx).getRight() >= t1Idx  ) {
+        // Get the supplementary task indices
+        Integer supT1Idx = this.nextTask.get(v).get(t1Idx).getRight();
+        Integer supT2Idx = this.nextTask.get(v).get(t2Idx).getRight();
+
+        // First check the intervals (faster)
+        if (this.nextTask.get(v).get(t1Idx).getRight() <= t2Idx  ||
+            this.nextTask.get(v).get(t2Idx).getRight() >= t1Idx) {
             return false;
         }
-        else {
-            return true;
-        }
+
+        // Then check weights in those 3 cases:
+        //  1.
+        // if ()
+        return false;
     }
 
     /**
-     * Swaps the two indexes in the list of tasks for vehicle v
+     * Swaps the two indexes in the list of tasks for vehicle v.
      */
     public void swapSubTasksFor(VarVehicle v, int t1Idx, int t2Idx) {
         // before swapping remember to change the indexes of the supplementary tasks

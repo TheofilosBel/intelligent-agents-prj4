@@ -5,27 +5,30 @@ import java.util.Collections;
 import java.util.List;
 
 import logist.plan.Plan;
+import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskSet;
 import model.VarVehicle;
 import model.VarTask.Type;
 import model.Solution;
 import model.VarTask;
+import java.util.SplittableRandom;
 
 public class StochasticLocalSearch {
 
     /**
      * Apply the stochastic local search
      */
-    public Plan apply() {
+    public Plan apply(List<VarVehicle> vehicles, TaskSet tasks) {
         // Initialize the solution
         Solution solution = createInitialSolution();
         Solution nextSolution = null;
         boolean[] isSame = new boolean[1];  // A boolean wrapper
+        SplittableRandom randGen = new SplittableRandom(1);
 
         // Loop until solution good enough
         do {
-            List<Solution> neighbors = chooseNeighbors(solution);
+            List<Solution> neighbors = chooseNeighbors(solution, vehicles, randGen);
             nextSolution = localChoice(neighbors, isSame);
         }
         while (checkTermination(solution, nextSolution, isSame[0]));
@@ -44,7 +47,22 @@ public class StochasticLocalSearch {
         return null;
     }
 
-    private List<Solution> chooseNeighbors(Solution solution) {
+    private List<Solution> chooseNeighbors(Solution solution, List<VarVehicle> vehicles, SplittableRandom randGen) {
+        List<Solution> neighbors = new ArrayList<>();
+
+        // Get a random vehicle that holds a task (nextTask != Null)
+        VarVehicle randVehicle = null;
+        VarTask nexTaskRand = null;
+        do {
+            randVehicle = vehicles.get( randGen.nextInt(vehicles.size()) );
+        } while ( (nexTaskRand = solution.getNextTaskFor(randVehicle)) != null );
+
+
+        // Create one new solution by transferring the vehicles next task to all other vehicles
+        // under the constraint that the can fit it (capacity constraint).
+
+
+
         return null;
     }
 
@@ -117,5 +135,10 @@ public class StochasticLocalSearch {
 
     //     return newSolution;
     // }
+
+
+    public static void main(String[] args) {
+
+    }
 
 }
