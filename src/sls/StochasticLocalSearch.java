@@ -1,11 +1,9 @@
 package sls;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import logist.plan.Plan;
-import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskSet;
 import model.VarVehicle;
@@ -53,18 +51,40 @@ public class StochasticLocalSearch {
 
         // Get a random vehicle that holds a task (nextTask != Null)
         VarVehicle randVehicle = null;
-        VarTask nexTaskRand = null;
+        VarTask nexTaskRand = null;  // TODO Orest do you need the next task?
         do {
             randVehicle = vehicles.get( randGen.nextInt(vehicles.size()) );
-        } while ( (nexTaskRand = solution.getNextTaskFor(randVehicle)) != null );
+        } while ( (nexTaskRand = solution.getNextTask(randVehicle)) != null );
 
-
-        // Create one new solution by transferring the vehicles next task to all other vehicles
+        // Operation 1:
+        // Create one new solution by transferring the randVehicles next task to all other vehicles
         // under the constraint that the can fit it (capacity constraint).
+        for (VarVehicle vehicle: vehicles) {
+            Solution newSolution = changeVehicle(solution, randVehicle, vehicle);
+            if (newSolution.checkCapacityConstraint(vehicle)) {
+                neighbors.add(newSolution);
+            }
+        }
 
+        // Operation 2:
+        // Swap the order of the all tasks (if possible) in the randVehicle and create a new solution for each swap
+        for (int outerIdx = 0; outerIdx < solution.getTasksSize(randVehicle) - 1; outerIdx++) { // Until previous of last
+            for (int innerIdx = outerIdx + 1; innerIdx < solution.getTasksSize(randVehicle); innerIdx++) { // Until last
 
+                 // Check if swap is violating the pickUp-Delivery order constraints
+                if (solution.checkPickUpDeliverOrder(randVehicle, outerIdx, innerIdx)) {
+                    Solution newSolution = new Solution(solution);
+                    newSolution.swapVarTasksFor(randVehicle, outerIdx, innerIdx);
 
-        return null;
+                    // Check if the weight constraints are satisfied
+                    if (newSolution.checkCapacityConstraint(randVehicle)) {
+                        neighbors.add(newSolution);
+                    }
+                }
+            }
+        }
+
+        return neighbors;
     }
 
     public Solution createInitialSolution() {
@@ -86,7 +106,7 @@ public class StochasticLocalSearch {
         }
         tasks.removeAll(ts);
 
-        Solution s = new Solution();
+        Solution s = new Solution(vehicles);
         for (Task t : tasks) {
             s.addVarTask(v, new VarTask(t, Type.PickUp));
         }
@@ -107,15 +127,10 @@ public class StochasticLocalSearch {
      */
     private Solution changeTaskOrder(Solution solution, VarVehicle v, int t1Idx, int t2Idx) throws AssertionError{
 
-        // Check if swap is violating the constraints
-        if (solution.checkDeliverOrder(v, t1Idx, t2Idx)) {
-            Solution newSolution = new Solution(solution);
-            newSolution.swapVarTasksFor(v, t1Idx, t2Idx);
-            return newSolution;
-        }
-        else {
-            throw new AssertionError("Delivery of T1 before T2");
-        }
+
+
+        // Constraints where not satisfied
+        return null;
     }
 
     /**

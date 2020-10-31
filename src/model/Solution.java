@@ -18,7 +18,11 @@ public class Solution {
 
     HashMap<VarTask, VarVehicle> taskVehicles = new HashMap<>(); // Maps tasks to the vehicles that carry them.
 
-    public Solution() {}
+    public Solution(List<VarVehicle> vehicles) {
+        for (VarVehicle vehicle: vehicles) {
+            this.nextTask.put(vehicle, new ArrayList<>());
+        }
+    }
 
     /** Copy constructor */
     public Solution(Solution toCopy) {
@@ -30,8 +34,12 @@ public class Solution {
     /**
      * Return the 1st {@link VarTask} set to be executed for a {@link VarVehicle}
      */
-    public VarTask getNextTaskFor(VarVehicle v) {
+    public VarTask getNextTask(VarVehicle v) {
         return this.nextTask.get(v).get(0).getLeft();
+    }
+
+    public Integer getTasksSize(VarVehicle v) {
+        return this.nextTask.get(v).size();
     }
 
     /**
@@ -69,8 +77,8 @@ public class Solution {
 
         // If list empty create a new list
         if (tasks == null) {
-            tasks = new ArrayList<>();
-            this.nextTask.put(v, tasks);
+            // ! Debug
+            throw new AssertionError("Tasks null for: " + v);
         }
 
         // If task is pickUp simply append it in the list
@@ -107,18 +115,17 @@ public class Solution {
 
 
     /**
-     * Check 2 tings:
-     * 1. If task1's t1 supplementary action is in interval (t1Idx, t2Idx] or
-     *    if task2's supplementary action is in interval [t1Idx, t2Idx)
-     * 2. if swapping will result in an overload of the capacity of the vehicle.
+     * PickUp - Deliver order constraint
      *
-     * If one of the above holds, return false
+     * Check if task1's t1 supplementary action is in interval (t1Idx, t2Idx] or
+     * if task2's supplementary action is in interval [t1Idx, t2Idx).
+     * If so return false
      *
      * @NOTE: Deliver is the supplementary of pickup and vice versa.
      * @param t1
      * @param t2
      */
-    public boolean checkDeliverOrder(VarVehicle v,  int t1Idx, int t2Idx) {
+    public boolean checkPickUpDeliverOrder(VarVehicle v,  int t1Idx, int t2Idx) {
         // Get the supplementary task indices
         Integer supT1Idx = this.nextTask.get(v).get(t1Idx).getRight();
         Integer supT2Idx = this.nextTask.get(v).get(t2Idx).getRight();
