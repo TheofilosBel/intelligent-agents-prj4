@@ -1,13 +1,16 @@
 package sls;
 
 import logist.plan.Plan;
+import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskSet;
 import model.VarVehicle;
 import model.VarTask.Type;
 import model.Solution;
 import model.VarTask;
+import utils.OrderedList;
 import utils.Pair;
+import utils.OrderedList.OrderType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,36 +20,99 @@ import java.util.SplittableRandom;
 
 public class StochasticLocalSearch {
 
+    private Double choiceProbability;
+    private long timeout;  // The time that the algorithm has available
+    OrderedList<Solution, Double> bestSolutions;
+
+    public StochasticLocalSearch(double choiceProbability, long timeout) {
+        this.bestSolutions = new OrderedList<>(5, OrderType.Acceding);
+        this.choiceProbability = choiceProbability;
+        this.timeout = timeout;
+    }
+
     /**
      * Apply the stochastic local search
      */
-    public Plan apply(List<VarVehicle> vehicles, TaskSet tasks) {
-        // Create the initial solution
-        Solution solution = createInitialSolution(vehicles, tasks);
+    public List<Plan> apply(List<VarVehicle> vehicles, TaskSet tasks) {
+        // Start measuring time
+        long startTime = System.currentTimeMillis();
+        SplittableRandom randGen = new SplittableRandom(startTime);
 
-        Solution nextSolution = null;
-        boolean[] isSame = new boolean[1];  // A boolean wrapper
-        SplittableRandom randGen = new SplittableRandom(1);
+        // Create the initial solution
+        Solution solution = createInitialSolution(vehicles, tasks, randGen);
 
         // Loop until solution good enough
+        int iterCounter = 0;
         do {
             List<Solution> neighbors = chooseNeighbors(solution, vehicles, randGen);
-            nextSolution = localChoice(neighbors, isSame);
-        }
-        while (checkTermination(solution, nextSolution, isSame[0]));
+            solution = localChoice(neighbors, solution, randGen);
+            iterCounter++;
 
-        return null;
+            // Get the elapsed time from the beginning
+            long elapsedTime = System.currentTimeMillis() - startTime;
+
+            // Check termination condition
+            if (terminationCondition(elapsedTime, iterCounter)) {
+                break;
+            }
+        } while (true);
+
+
+        System.out.println("MinCost: " + bestSolutions.peekScore());
+        return bestSolutions.getTop().toPlans(vehicles);
     }
 
     /**
      * @return Return false if we must terminate the local search
      */
-    private boolean checkTermination(Solution solution, Solution nextSolution, boolean areEqual) {
+    private boolean terminationCondition(long elapsedTime, int iterCounter) {
+
+        // Check time
+        if (elapsedTime + 500 >= timeout) {  // give 500 ms to shutdown
+            return true;
+        }
+
+        if (iterCounter >= 100000) {
+            return true;
+        }
+
+        // if time is not bothering us, then check the top 5 solutions
+        // If not that different then break
+        // Double topScore = bestSolutions.peekScore();
+        // Double secondScore = bestSolutions.peek2ndScore();
+        // if (topScore != null && secondScore != null && secondScore - topScore < 10e8) {
+        //     return true;
+        // }
+
         return false;
     }
 
-    private Solution localChoice(List<Solution> neighbors, boolean[] isSame) {
-        return null;
+    private Solution localChoice(List<Solution> neighbors, Solution oldSolution, SplittableRandom randGen) {
+        Double probability = randGen.nextDouble(1D);
+
+        // With probability p return the best neighbor
+        if (probability <= choiceProbability) {  // From 0.0 --to-> p: predict best
+            Double minCost = oldSolution.cost();
+            Solution bestSolution = oldSolution;
+
+            for (Solution solution: neighbors) {
+                Double cost = solution.cost();
+                if (cost < minCost) {
+                    minCost = cost;
+                    bestSolution = solution;
+                }
+            }
+
+            // Store the best solution
+            bestSolutions.addElement(bestSolution, minCost);
+
+            // Return the best solution
+            return bestSolution;
+        }
+        else {
+            return oldSolution;
+        }
+
     }
 
     private List<Solution> chooseNeighbors(Solution solution, List<VarVehicle> vehicles, SplittableRandom randGen) {
@@ -91,7 +157,46 @@ public class StochasticLocalSearch {
     }
 
     // Creates the initial solution for the problem by assigning every task to the vehicle with the maximum capacity.
-    public Solution createInitialSolution(List<VarVehicle> vehicles, TaskSet tasks) {
+    public Solution createInitialSolution(List<VarVehicle> vehicles, TaskSet tasks, SplittableRandom randGen) {
+        Solution solution = new Solution(vehicles);
+
+        // Find the vehicle with the maximum capacity
+        VarVehicle maxV = Collections.max(vehicles, Comparator.comparing(s -> s.capacity()));
+
+        // Assign all tasks to the vehicle closest to it
+        for (Task t: tasks) {
+            // Get random vehicle
+            VarVehicle closestVehicle = null;
+            Double minDistance = Double.MAX_VALUE;
+            for (VarVehicle v: vehicles) {
+                double dist = v.startCity().distanceTo(t.pickupCity);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestVehicle = v;
+                }
+            }
+
+            // Try to put it on the closestVehicle
+            if (t.weight <= closestVehicle.capacity()) {
+                solution.addVarTask(closestVehicle, new VarTask(t, Type.PickUp));
+                solution.addVarTask(closestVehicle, new VarTask(t, Type.Delivery));
+            }
+            // If it doesn't fit try the max vehicle
+            else if (t.weight <= maxV.capacity()) {
+                solution.addVarTask(maxV, new VarTask(t, Type.PickUp));
+                solution.addVarTask(maxV, new VarTask(t, Type.Delivery));
+            }
+            else {
+                // The problem is unsolvable if the biggest vehicle cannot carry a task
+                throw new AssertionError("The problem is unsolvable. Initial solution cannot be created.");
+            }
+        }
+
+        return solution;
+    }
+
+
+    public Solution createInitialSolution2(List<VarVehicle> vehicles, TaskSet tasks) {
         Solution solution = new Solution(vehicles);
 
         // Find the vehicle with the maximum capacity
@@ -111,6 +216,7 @@ public class StochasticLocalSearch {
 
         return solution;
     }
+
 
     /**
      * Run some tests

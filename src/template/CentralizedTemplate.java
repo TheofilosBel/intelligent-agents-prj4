@@ -36,6 +36,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
     private Agent agent;
     private long timeout_setup;
     private long timeout_plan;
+    private StochasticLocalSearch sls;
 
     @Override
     public void setup(Topology topology, TaskDistribution distribution,
@@ -55,6 +56,9 @@ public class CentralizedTemplate implements CentralizedBehavior {
         // the plan method cannot execute more than timeout_plan milliseconds
         timeout_plan = ls.get(LogistSettings.TimeoutKey.PLAN);
 
+        // The sls algorithm
+        sls = new StochasticLocalSearch(0.85, timeout_plan);
+
         this.topology = topology;
         this.distribution = distribution;
         this.agent = agent;
@@ -65,8 +69,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         long time_start = System.currentTimeMillis();
 
         // our dumb
-        StochasticLocalSearch sls = new StochasticLocalSearch();
-        List<Plan> plans = sls.dumbTest(VarVehicle.toVarVehicle(vehicles), tasks);
+        List<Plan> plans = sls.apply(VarVehicle.toVarVehicle(vehicles), tasks);
 
         // theirs
         // Plan planVehicle1 = naivePlan(vehicles.get(0), tasks);
