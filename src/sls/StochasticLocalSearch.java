@@ -113,15 +113,24 @@ public class StochasticLocalSearch {
         Solution s = new Solution(vehicles);
         for (Task t : tasks) {
             s.addVarTask(v, new VarTask(t, Type.PickUp));
+        }
+        for (Task t : tasks) {
             s.addVarTask(v, new VarTask(t, Type.Delivery));
         }
 
-        SplittableRandom randGen = new SplittableRandom(1);
+        // SplittableRandom randGen = new SplittableRandom(1);
 
-        // Loop until solution good enough
-        List<Solution> neighbors = chooseNeighbors(s, vehicles, randGen);
+        // // Loop until solution good enough
+        // List<Solution> neighbors = chooseNeighbors(s, vehicles, randGen);
 
+        System.out.println(s);
+        s = changeVehicle(s, vehicles.get(0), vehicles.get(1));
+        System.out.println(s);
+        s.checkSupps();
 
+        s = changeVehicle(s, vehicles.get(0), vehicles.get(1));
+        System.out.println(s);
+        s.checkSupps();
     }
 
     /**
