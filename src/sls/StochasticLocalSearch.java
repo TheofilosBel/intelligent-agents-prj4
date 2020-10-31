@@ -88,10 +88,10 @@ public class StochasticLocalSearch {
 
         Solution s = new Solution();
         for (Task t : tasks) {
-            s.addSubTask(v, new VarTask(t, Type.PickUp));
+            s.addVarTask(v, new VarTask(t, Type.PickUp));
         }
         for (Task t : tasks) {
-            s.addSubTask(v, new VarTask(t, Type.Delivery));
+            s.addVarTask(v, new VarTask(t, Type.Delivery));
         }
 
 
@@ -110,7 +110,7 @@ public class StochasticLocalSearch {
         // Check if swap is violating the constraints
         if (solution.checkDeliverOrder(v, t1Idx, t2Idx)) {
             Solution newSolution = new Solution(solution);
-            newSolution.swapSubTasksFor(v, t1Idx, t2Idx);
+            newSolution.swapVarTasksFor(v, t1Idx, t2Idx);
             return newSolution;
         }
         else {

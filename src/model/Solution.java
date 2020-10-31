@@ -41,7 +41,7 @@ public class Solution {
      * @param v The vehicle
      * @param t The task
      */
-    public void addSubTask(VarVehicle v, VarTask t) {
+    public void addVarTask(VarVehicle v, VarTask t) {
         List<Pair<VarTask, Integer>> tasks = this.nextTask.get(v);
         List<Integer> weightsInTime = vehicleLoad.get(v);
 
@@ -131,7 +131,7 @@ public class Solution {
     /**
      * Swaps the two indexes in the list of tasks for vehicle v.
      */
-    public void swapSubTasksFor(VarVehicle v, int t1Idx, int t2Idx) {
+    public void swapVarTasksFor(VarVehicle v, int t1Idx, int t2Idx) {
         // before swapping remember to change the indexes of the supplementary tasks
         int supt1Idx = this.nextTask.get(v).get(t1Idx).getRight();
         int supt2Idx = this.nextTask.get(v).get(t2Idx).getRight();
@@ -175,17 +175,14 @@ public class Solution {
         return pair;
     }
 
-    // Returns the first task of the given vehicle.
-    public VarTask getFirstTaskOf(VarVehicle v) {
-        return nextTask.get(v).get(0).getLeft();
-    }
-
     // Removes the task of a vehicle at the given postition in the list.
+    // TODO: update weights
     public void removeTaskAt(VarVehicle v, int position) {
         nextTask.get(v).remove(position);
     }
 
     // Insert the given task as the first one in the list of the given vehicle.
+    // TODO: update weights
     public void addTaskAt(VarVehicle v, VarTask t, int position) {
         nextTask.get(v).add(position, new Pair<>(t, 0));
     }
