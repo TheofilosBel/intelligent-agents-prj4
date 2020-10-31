@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
+import logist.plan.Plan;
+import logist.task.TaskSet;
+import logist.topology.Topology.City;
 import model.VarTask.Type;
 import utils.Pair;
 
@@ -234,6 +237,55 @@ public class Solution {
             totalCost += vehicleCost * entry.getKey().costPerKm();
         }
         return totalCost;
+    }
+
+
+    /**
+     * Create a plan for each vehicle and return a list of all the plans
+     * with respect to the order of the list Vehicle passed as parameter
+     * @return
+     */
+    public List<Plan> toPlans(List<VarVehicle> vehicles) {
+        List<Plan> plans = new ArrayList<>();
+        for (VarVehicle vehicle: vehicles) {
+            // Create a plan for each vehicle
+            if (this.getNextTask(vehicle) == null) {
+                plans.add(Plan.EMPTY);
+            }
+            else {
+                // Stat to the vehicle's start city
+                Plan plan = new Plan(vehicle.startCity());
+
+                // Move from vehicle's stat city to first task's city
+                for (City cityInPath: vehicle.startCity().pathTo(this.getNextTask(vehicle).city())) {
+                    plan.appendMove(cityInPath);
+                }
+
+                // Make all the plan actions
+                for (int idx = 0; idx < this.getTasksSize(vehicle); idx++) {
+                    VarTask task = this.nextTask.get(vehicle).get(idx).getLeft();
+
+                    // First look if task is pickup / deliver and apply the action
+                    if (task.type == Type.PickUp) {
+                        plan.appendPickup(task.task);
+                    }
+                    else {
+                        plan.appendDelivery(task.task);
+                    }
+
+                    // Then if task has next task in the list, move nextTask's city
+                    if (idx < this.getTasksSize(vehicle) - 1) {
+                        City nextTaskCity = this.nextTask.get(vehicle).get(idx + 1).getLeft().city();
+                        for (City cityInPath: task.city().pathTo(nextTaskCity)) {
+                            plan.appendMove(cityInPath);
+                        }
+                    }
+                }
+
+                plans.add(plan);
+            }
+        }
+        return plans;
     }
 
     @Override

@@ -96,19 +96,18 @@ public class StochasticLocalSearch {
     /**
      * Run some tests
      */
-    public void dumbTest(List<VarVehicle> vehicles, TaskSet tasks) {
+    public List<Plan> dumbTest(List<VarVehicle> vehicles, TaskSet tasks) {
         VarVehicle v = vehicles.get(0);
 
         // Change task order test
-
-        List<Task> ts = new ArrayList<>();
-        int counter = 0;
-        for (Task t: tasks) {
-            counter++;
-            if (counter < tasks.size() - 4)
-                ts.add(t);
-        }
-        tasks.removeAll(ts);
+        // List<Task> ts = new ArrayList<>();
+        // int counter = 0;
+        // for (Task t: tasks) {
+        //     counter++;
+        //     if (counter < tasks.size() - 4)
+        //         ts.add(t);
+        // }
+        // tasks.removeAll(ts);
 
         Solution s = new Solution(vehicles);
         for (Task t : tasks) {
@@ -116,12 +115,13 @@ public class StochasticLocalSearch {
             s.addVarTask(v, new VarTask(t, Type.Delivery));
         }
 
-        SplittableRandom randGen = new SplittableRandom(1);
+
 
         // Loop until solution good enough
-        List<Solution> neighbors = chooseNeighbors(s, vehicles, randGen);
+        // SplittableRandom randGen = new SplittableRandom(1);
+        // List<Solution> neighbors = chooseNeighbors(s, vehicles, randGen);
 
-
+        return s.toPlans(vehicles);
     }
 
     /**
