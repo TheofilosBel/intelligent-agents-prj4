@@ -15,9 +15,6 @@ public class Solution {
     // Each item of the list stores the task along with an index to its supplementary task
     // (if pickup the index points to the delivery and if delivery the index points to pickup).
     private HashMap<VarVehicle, List<Pair<VarTask, Integer>>> nextTask = new HashMap<>();
-    private HashMap<VarVehicle, List<Integer>> vehicleLoad = new HashMap<>();
-
-    HashMap<VarTask, VarVehicle> taskVehicles; // Maps tasks to the vehicles that carry them
 
     public Solution() {}
 
@@ -35,6 +32,10 @@ public class Solution {
         return this.nextTask.get(v).get(0).getLeft();
     }
 
+    public boolean checkCapacityConstraint(VarVehicle v) {
+        return false
+    }
+
     /**
      * Adds the subTask to the end of the ordered list of the vehicles tasks
      *
@@ -43,29 +44,16 @@ public class Solution {
      */
     public void addSubTask(VarVehicle v, VarTask t) {
         List<Pair<VarTask, Integer>> tasks = this.nextTask.get(v);
-        List<Integer> weightsInTime = vehicleLoad.get(v);
 
         // If list empty create a new list
         if (tasks == null) {
             tasks = new ArrayList<>();
             this.nextTask.put(v, tasks);
-            weightsInTime = new ArrayList<>();
-            this.vehicleLoad.put(v, weightsInTime);
         }
 
         // If task is pickUp simply append it in the list
         if (t.type == Type.PickUp) {
             tasks.add(new Pair<>(t, -1));  // -1 because we dont have the supplementary sub Task yet
-
-            // Add the weight to the current time
-            if (weightsInTime.isEmpty()) {
-                weightsInTime.add(t.weight());
-            } else {
-                weightsInTime.add(weightsInTime.get(weightsInTime.size() - 1) + t.weight());  // There is idx - 1 for sure
-            }
-
-            // ! Debug
-
         }
         // If delivery then search for the supplementary pick up and bind them
         else {
@@ -78,9 +66,6 @@ public class Solution {
                 if (pair.getLeft().task.id == t.task.id) {
                     pair.setRight( tasks.size() );  // Add as index the size, which will be the new index of t
                     tasks.add(new Pair<>(t, idx));
-
-                    // Update the weight: Remove the tasks weight
-                    weightsInTime.add(weightsInTime.get(weightsInTime.size() - 1) - t.weight());
 
                     // ! Debug
                     if (pair.getLeft().type == Type.Delivery)
@@ -117,14 +102,12 @@ public class Solution {
         Integer supT2Idx = this.nextTask.get(v).get(t2Idx).getRight();
 
         // First check the intervals (faster)
-        if (this.nextTask.get(v).get(t1Idx).getRight() <= t2Idx  ||
-            this.nextTask.get(v).get(t2Idx).getRight() >= t1Idx) {
+        if ( (supT1Idx <= t2Idx && supT1Idx > t1Idx) || (supT2Idx >= t1Idx && supT2Idx < t2Idx)) {
             return false;
         }
 
         // Then check weights in those 3 cases:
         //  1.
-        // if ()
         return false;
     }
 
@@ -180,7 +163,7 @@ public class Solution {
         return nextTask.get(v).get(0).getLeft();
     }
 
-    // Removes the task of a vehicle at the given postition in the list.
+    // Removes the task of a vehicle at the given postilion in the list.
     public void removeTaskAt(VarVehicle v, int position) {
         nextTask.get(v).remove(position);
     }
