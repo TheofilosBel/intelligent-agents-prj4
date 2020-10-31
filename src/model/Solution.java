@@ -249,16 +249,26 @@ public class Solution {
     /**
      * Return the total cost of a solutions.
      *
-     * For each vehicle count the total kms required to execute the VarTasks assigned to it. Use the
-     * as distance between two VarTasks the shortest distance between their cities.
+     * For each vehicle count the total kms required to execute the VarTasks assigned to it.
+     * Use as distance between two VarTasks the shortest distance between their cities.
+     * In the score consider also the path from vehicle's task city to the first task's city.
      *
      * Then multiply the vehicle's distance with its costPerKm and sum up all the costs for all vehicles.
      */
     public double cost() {
         Double totalCost = 0D;
         for (Entry<VarVehicle, List<Pair<VarTask, Integer>>> entry: nextTask.entrySet()) {
-            // Loop all the tasks in a vehicle
             Double vehicleCost = 0D;
+
+            // skip vehicles with no tasks
+            if (this.getNextTask(entry.getKey()) == null) {
+                continue;
+            }
+
+            // Add the starting cost from the vehicle's start city to the first task
+            vehicleCost = entry.getKey().startCity().distanceTo( this.getNextTask(entry.getKey()).city());
+
+            // Loop all the tasks in a vehicle
             for (int idx = 0; idx < entry.getValue().size() - 2; idx++) { // -2 because we dont want the last element
                 VarTask task = entry.getValue().get(idx).getLeft();
                 VarTask nextTask = entry.getValue().get(idx + 1).getLeft();
@@ -315,6 +325,7 @@ public class Solution {
                 plans.add(plan);
             }
         }
+
         return plans;
     }
 
