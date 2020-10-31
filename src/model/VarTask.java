@@ -17,6 +17,10 @@ public class VarTask {
         this.task = task;
     }
 
+    public int weight() {
+        return this.task.weight;
+    }
+
 
 	@Override
     public String toString() {
