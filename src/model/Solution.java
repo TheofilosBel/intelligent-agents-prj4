@@ -43,26 +43,27 @@ public class Solution {
     }
 
     /**
-     * Check the if the stream of tasks in vehicle v satisfies it's capacity
-     * constraint in each step.
+     * Check the if the stream of tasks in vehicle v satisfies its capacity constraint.
      *
      * @param v
      * @return
      */
     public boolean checkCapacityConstraint(VarVehicle v) {
         Integer currentWeight = 0;
-        for (Pair<VarTask, Integer> pair: this.nextTask.get(v)) {
 
+        for (Pair<VarTask, Integer> pair: this.nextTask.get(v)) {
             if (pair.getLeft().type == Type.PickUp) {
-                currentWeight += pair.getLeft().weight();
-            } else {
-                currentWeight -= pair.getLeft().weight();
+                currentWeight += pair.getLeft().weight(); // Add for pickup
+            }
+            else {
+                currentWeight -= pair.getLeft().weight(); // Subtract for deliver
             }
 
             if (currentWeight > v.capacity()) {
                 return false;
             }
         }
+
         return true;
     }
 
@@ -178,25 +179,27 @@ public class Solution {
         int supIndex = tasks.get(index).getRight();
 
         // Create a pair containing a task and its supplementary task
-        Pair<VarTask, VarTask> pair = new Pair<>(tasks.get(index).getLeft(), tasks.get(supIndex).getLeft());
-
-        // Remove the two tasks from the list
-        removeTaskAt(v, index);
-        removeTaskAt(v, supIndex);
-
-        return pair;
+        return new Pair<>(tasks.get(index).getLeft(), tasks.get(supIndex).getLeft());
     }
 
-    // Removes the task of a vehicle at the given postition in the list.
-    // TODO: update weights
-    public void removeTaskAt(VarVehicle v, int position) {
-        nextTask.get(v).remove(position);
+    // Removes the given pair of task sfor the vehicle at the given index.
+    public void removeTaskAndSupplementaryAt(VarVehicle v, Pair<VarTask, VarTask> pair, int index) {
+        // Get the tasks of the vehicle
+        List<Pair<VarTask, Integer>> tasks = this.nextTask.get(v);
+
+        // Get the index of the supplementary task
+        int supIndex = tasks.get(index).getRight();
+
+        // Remove the task and its supplementary task
+        tasks.remove(index);
+        tasks.remove(supIndex-1); // -1 because we removed one element already
     }
 
-    // Insert the given task as the first one in the list of the given vehicle.
-    // TODO: update weights
-    public void addTaskAt(VarVehicle v, VarTask t, int position) {
-        nextTask.get(v).add(position, new Pair<>(t, 0));
+    // Inserts the given pair of tasks for the vehicle at the given index.
+    public void addTaskAndSupplementaryAt(VarVehicle v, Pair<VarTask, VarTask> pair, int index) {
+        // Add the two tasks back-to-back in the list of the vehicle
+        nextTask.get(v).add(index, new Pair<VarTask, Integer>(pair.getLeft(), index + 1));
+        nextTask.get(v).add(index + 1, new Pair<VarTask, Integer>(pair.getRight(), index));
     }
 
     // Updates the vehicles of the given task in the map.
