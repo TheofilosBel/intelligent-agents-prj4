@@ -70,7 +70,6 @@ public class CentralizedTemplate implements CentralizedBehavior {
         StochasticLocalSearch sls = new StochasticLocalSearch();
         sls.dumbTest(VarVehicle.toVarVehicle(vehicles), tasks);
 
-
         List<Plan> plans = new ArrayList<Plan>();
         plans.add(planVehicle1);
         while (plans.size() < vehicles.size()) {

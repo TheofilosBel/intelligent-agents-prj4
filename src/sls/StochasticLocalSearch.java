@@ -99,11 +99,13 @@ public class StochasticLocalSearch {
     public void dumbTest(List<VarVehicle> vehicles, TaskSet tasks) {
         VarVehicle v = vehicles.get(0);
 
+        // Change task order test
+
         List<Task> ts = new ArrayList<>();
         int counter = 0;
         for (Task t: tasks) {
             counter++;
-            if ( counter <tasks.size() - 4)
+            if (counter < tasks.size() - 4)
                 ts.add(t);
         }
         tasks.removeAll(ts);
@@ -123,24 +125,24 @@ public class StochasticLocalSearch {
     }
 
     /**
-     * Assigns the first task of vehicle v1 to vehicle v2. Also moves its supplementary task (always a delivery).
+     * Assigns the first task of vehicle v1 to vehicle v2. Also moves its supplementary task.
      */
     private Solution changeVehicle(Solution solution, VarVehicle v1, VarVehicle v2) {
         // Create a copy of the old solution.
         Solution newSolution = new Solution(solution);
 
-        // Get the first task of vehicle v1 and its supplementary.
+        // Get the first task of vehicle v1 and its supplementary task.
         Pair<VarTask, VarTask> taskPair = solution.getTaskAndSupplementaryAt(v1, 0);
-        VarTask taskPickUp = taskPair.getLeft();
-        VarTask taskDelivery = taskPair.getRight();
+
+        // Remove the first task and its supplementary
+        newSolution.removeTaskAndSupplementaryAt(v1, taskPair, 0);
 
         // Insert the pickUp as the first task of vehicle v2 and the delivery as the second.
-        newSolution.addTaskAt(v2, taskPickUp, 0);
-        newSolution.addTaskAt(v2, taskDelivery, 1);
+        newSolution.addTaskAndSupplementaryAt(v2, taskPair, 0);
 
         // Update the vehicles of the tasks
-        newSolution.updateTaskVehicle(taskPickUp, v2);
-        newSolution.updateTaskVehicle(taskDelivery, v2);
+        newSolution.updateTaskVehicle(taskPair.getLeft(), v2);
+        newSolution.updateTaskVehicle(taskPair.getRight(), v2);
 
         return newSolution;
     }
