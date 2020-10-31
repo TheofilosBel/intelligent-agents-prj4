@@ -1,8 +1,5 @@
 package sls;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import logist.plan.Plan;
 import logist.task.Task;
 import logist.task.TaskSet;
@@ -11,6 +8,11 @@ import model.VarTask.Type;
 import model.Solution;
 import model.VarTask;
 import utils.Pair;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.SplittableRandom;
 
 public class StochasticLocalSearch {
@@ -19,8 +21,9 @@ public class StochasticLocalSearch {
      * Apply the stochastic local search
      */
     public Plan apply(List<VarVehicle> vehicles, TaskSet tasks) {
-        // Initialize the solution
-        Solution solution = createInitialSolution();
+        // Create the initial solution
+        Solution solution = createInitialSolution(vehicles, tasks);
+
         Solution nextSolution = null;
         boolean[] isSame = new boolean[1];  // A boolean wrapper
         SplittableRandom randGen = new SplittableRandom(1);
@@ -87,50 +90,53 @@ public class StochasticLocalSearch {
         return neighbors;
     }
 
+    // Creates the initial solution for the problem by assigning every task to the vehicle with the maximum capacity.
+    public Solution createInitialSolution(List<VarVehicle> vehicles, TaskSet tasks) {
+        Solution solution = new Solution(vehicles);
 
+        // Find the vehicle with the maximum capacity
+        VarVehicle v = Collections.max(vehicles, Comparator.comparing(s -> s.capacity()));
 
-    public Solution createInitialSolution() {
-        return null;
+        // Assign all tasks to the vehicle with the maximum capacity
+        for (Task t: tasks) {
+            if (t.weight <= v.capacity()) {
+                solution.addVarTask(v, new VarTask(t, Type.PickUp));
+                solution.addVarTask(v, new VarTask(t, Type.Delivery));
+            }
+            else {
+                // The problem is unsolvable if the biggest vehicle cannot carry a task
+                throw new AssertionError("The problem is unsolvable. Initial solution cannot be created.");
+            }
+        }
+
+        return solution;
     }
 
     /**
      * Run some tests
      */
     public void dumbTest(List<VarVehicle> vehicles, TaskSet tasks) {
-        VarVehicle v = vehicles.get(0);
+        Solution solution = createInitialSolution(vehicles, tasks);
+        System.out.println(solution);
 
         // Change task order test
 
-        List<Task> ts = new ArrayList<>();
-        int counter = 0;
-        for (Task t: tasks) {
-            counter++;
-            if (counter < tasks.size() - 4)
-                ts.add(t);
-        }
-        tasks.removeAll(ts);
+        // List<Task> ts = new ArrayList<>();
+        // int counter = 0;
+        // for (Task t: tasks) {
+        //     counter++;
+        //     if (counter < tasks.size() - 4)
+        //         ts.add(t);
+        // }
+        // tasks.removeAll(ts);
 
-        Solution s = new Solution(vehicles);
-        for (Task t : tasks) {
-            s.addVarTask(v, new VarTask(t, Type.PickUp));
-        }
-        for (Task t : tasks) {
-            s.addVarTask(v, new VarTask(t, Type.Delivery));
-        }
-
-        // SplittableRandom randGen = new SplittableRandom(1);
-
-        // // Loop until solution good enough
-        // List<Solution> neighbors = chooseNeighbors(s, vehicles, randGen);
-
-        System.out.println(s);
-        s = changeVehicle(s, vehicles.get(0), vehicles.get(1));
-        System.out.println(s);
-        s.checkSupps();
-
-        s = changeVehicle(s, vehicles.get(0), vehicles.get(1));
-        System.out.println(s);
-        s.checkSupps();
+        // Solution s = new Solution(vehicles);
+        // for (Task t : tasks) {
+        //     s.addVarTask(v, new VarTask(t, Type.PickUp));
+        // }
+        // for (Task t : tasks) {
+        //     s.addVarTask(v, new VarTask(t, Type.Delivery));
+        // }
     }
 
     /**

@@ -36,7 +36,7 @@ public class Solution {
     }
 
     /**
-     * Return the 1st {@link VarTask} set to be executed for a {@link VarVehicle}
+     * Return the first {@link VarTask} set to be executed for a {@link VarVehicle}
      */
     public VarTask getNextTask(VarVehicle v) {
         if (this.nextTask.get(v).isEmpty()) {
