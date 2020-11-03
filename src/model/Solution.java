@@ -100,12 +100,6 @@ public class Solution {
     public void addVarTask(VarVehicle v, VarTask t) {
         List<Pair<VarTask, Integer>> tasks = this.nextTask.get(v);
 
-        // If list empty create a new list
-        if (tasks == null) {
-            // ! Debug
-            throw new AssertionError("Tasks null for: " + v);
-        }
-
         // If task is pickUp simply append it in the list
         if (t.type == Type.PickUp) {
             tasks.add(new Pair<>(t, -1));  // -1 because we dont have the supplementary sub Task yet
@@ -121,10 +115,6 @@ public class Solution {
                 if (pair.getLeft().task.id == t.task.id) {
                     pair.setRight( tasks.size() );  // Add as index the size, which will be the new index of t
                     tasks.add(new Pair<>(t, idx));
-
-                    // ! Debug
-                    if (pair.getLeft().type == Type.Delivery)
-                        throw new AssertionError("Adding two delivery tasks for: " + t.task);
 
                     // Update flag and break
                     foundPickUp = true;
@@ -172,22 +162,8 @@ public class Solution {
         int supt2Idx = this.nextTask.get(v).get(t2Idx).getRight();
 
         // Swap the indexes of the sup tasks to show to the new indices
-        if (supt1Idx != -1) {
-            // ! Debug
-            if (this.nextTask.get(v).get(supt1Idx).getLeft().task.id != this.nextTask.get(v).get(t1Idx).getLeft().task.id) {
-                throw new AssertionError("Bad mapping between pick up and delivery tasks");
-            }
-
-            this.nextTask.get(v).get(supt1Idx).setRight(t2Idx);
-        }
-        if (supt2Idx != -1) {
-            // ! Debug
-            if (this.nextTask.get(v).get(supt2Idx).getLeft().task.id != this.nextTask.get(v).get(t2Idx).getLeft().task.id) {
-                throw new AssertionError("Bad mapping between pick up and delivery tasks");
-            }
-
-            this.nextTask.get(v).get(supt2Idx).setRight(t1Idx);
-        }
+        this.nextTask.get(v).get(supt1Idx).setRight(t2Idx);
+        this.nextTask.get(v).get(supt2Idx).setRight(t1Idx);
 
         Collections.swap(this.nextTask.get(v), t1Idx, t2Idx);
     }
@@ -294,6 +270,7 @@ public class Solution {
 
 
     public void printCost() {
+        System.out.println("[INF] Analyze cost:");
         Double totalCost = 0D;
         for (Entry<VarVehicle, List<Pair<VarTask, Integer>>> entry: nextTask.entrySet()) {
             Double vehicleCost = 0D;
@@ -313,11 +290,11 @@ public class Solution {
                 vehicleCost += task.city().distanceTo(nextTask.city());
             }
             Double vehicleSum = vehicleCost * entry.getKey().costPerKm();
-            System.out.println("-Vehicle Cost: " + vehicleSum);
+            System.out.println("|-Vehicle Cost: " + vehicleSum);
             totalCost += vehicleSum;
         }
 
-        System.out.println("Total cost: " + totalCost);
+        System.out.println("+-> Total cost: " + totalCost);
     }
 
     /**

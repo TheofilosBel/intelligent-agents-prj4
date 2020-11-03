@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- defines gloabl settings in the platform -->
-<settings name="default">		
-		
+<settings name="default">
+
 	<!-- Sizes -->
 	<set world-width="640" />
-	<set world-height="480" />		
-	<set city-radius="8" />		
+	<set world-height="480" />
+	<set city-radius="8" />
 	<set route-width="8" />
-		
+
 	<!-- Colors -->
 	<set color-background="#ffffff" />
 	<set color-foreground="#000000" />

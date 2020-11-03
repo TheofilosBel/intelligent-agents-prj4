@@ -22,10 +22,10 @@ public class StochasticLocalSearch {
     private Double choiceProbability;
     private int iterations;
     private long timeout;  // The time that the algorithm has available
-    OrderedList<Solution, Double> bestSolutions;
+    OrderedList<Pair<Solution, Integer>, Double> bestSolutions;
 
     public StochasticLocalSearch(double choiceProbability, int iterations, long timeout) {
-        this.bestSolutions = new OrderedList<>(500, OrderType.Acceding);
+        this.bestSolutions = new OrderedList<>(5, OrderType.Acceding);
         this.choiceProbability = choiceProbability;
         this.iterations = iterations;
         this.timeout = timeout;
@@ -37,18 +37,18 @@ public class StochasticLocalSearch {
     public List<Plan> apply(List<VarVehicle> vehicles, TaskSet tasks) {
         // Start measuring time
         long startTime = System.currentTimeMillis();
-        SplittableRandom randGen = new SplittableRandom(1); // !debug
+        SplittableRandom randGen = new SplittableRandom(1);
 
         // Create the initial solution
-        // Solution solution = createShortestInitialSolution(vehicles, tasks);
-        Solution solution = createMaxInitialSolution(vehicles, tasks);
+        Solution solution = createShortestInitialSolution(vehicles, tasks);
+        // Solution solution = createMaxInitialSolution(vehicles, tasks);
         System.out.println("[INF] Initial solution cost: " + solution.cost());
 
         // Loop until solution good enough
         int iterCounter = 0;
         do {
             List<Solution> neighbors = chooseNeighbors(solution, vehicles, randGen);
-            solution = localChoice(neighbors, solution, randGen);
+            solution = localChoice(neighbors, solution, randGen, iterCounter);
             iterCounter++;
 
             // Get the elapsed time from the beginning
@@ -60,9 +60,12 @@ public class StochasticLocalSearch {
             }
         } while (true);
 
-        System.out.println("[INF] Best solution cost: " + bestSolutions.peekScore());
-        bestSolutions.getTop().printCost();
-        return bestSolutions.getTop().toPlans(vehicles);
+
+        System.out.println("[INF] Last solution cost: " + solution.cost());
+        System.out.println("[INF] Best solution cost: " + bestSolutions.peekScore() + " on iter: " + bestSolutions.getTop().getRight());
+        bestSolutions.getTop().getLeft().printCost();
+        System.out.println("[INF] 2nd best solution cost: " + bestSolutions.peek2ndScore());
+        return bestSolutions.getTop().getLeft().toPlans(vehicles);
     }
 
     /**
@@ -79,18 +82,10 @@ public class StochasticLocalSearch {
             return true;
         }
 
-        // if time is not bothering us, then check the top 5 solutions
-        // If not that different then break
-        // Double topScore = bestSolutions.peekScore();
-        // Double secondScore = bestSolutions.peek2ndScore();
-        // if (topScore != null && secondScore != null && secondScore - topScore < 10e8) {
-        //     return true;
-        // }
-
         return false;
     }
 
-    private Solution localChoice(List<Solution> neighbors, Solution oldSolution, SplittableRandom randGen) {
+    private Solution localChoice(List<Solution> neighbors, Solution oldSolution, SplittableRandom randGen, Integer iterCounter) {
         Double probability = randGen.nextDouble(1D);
 
         // With probability p return the best neighbor
@@ -107,7 +102,7 @@ public class StochasticLocalSearch {
             }
 
             // Store the best solution
-            bestSolutions.addElement(bestSolution, minCost);
+            bestSolutions.addElement(new Pair<>(bestSolution, iterCounter), minCost);
 
             // Return the best solution
             return bestSolution;
@@ -143,7 +138,6 @@ public class StochasticLocalSearch {
 
             // If constraints are met add it to neighbors
             if (newSolution.checkCapacityConstraint(vehicle)) {
-                newSolution.checkSupps(); // ! Debug
                 neighbors.add(newSolution);
 
                 // Change the order of the deliver the task with every possible pickup after that and create a new neighbor
@@ -163,7 +157,6 @@ public class StochasticLocalSearch {
 
                     // Check if the weight constraints are satisfied
                     if (newSolution.checkCapacityConstraint(randVehicle)) {
-                        newSolution.checkSupps(); // ! Debug
                         neighbors.add(newSolution);
                     }
                 }
@@ -283,7 +276,6 @@ public class StochasticLocalSearch {
 
                 // Check if the weight constraints are satisfied
                 if (newSolution.checkCapacityConstraint(vehicle)) {
-                    newSolution.checkSupps(); // ! Debug
                     newSolutions.add(newSolution);
                 }
             }
