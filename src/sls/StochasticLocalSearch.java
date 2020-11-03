@@ -25,7 +25,7 @@ public class StochasticLocalSearch {
     OrderedList<Solution, Double> bestSolutions;
 
     public StochasticLocalSearch(double choiceProbability, long timeout) {
-        this.bestSolutions = new OrderedList<>(5, OrderType.Acceding);
+        this.bestSolutions = new OrderedList<>(500, OrderType.Acceding);
         this.choiceProbability = choiceProbability;
         this.timeout = timeout;
     }
@@ -36,10 +36,11 @@ public class StochasticLocalSearch {
     public List<Plan> apply(List<VarVehicle> vehicles, TaskSet tasks) {
         // Start measuring time
         long startTime = System.currentTimeMillis();
-        SplittableRandom randGen = new SplittableRandom(startTime);
+        SplittableRandom randGen = new SplittableRandom(1); // !debug
 
         // Create the initial solution
         Solution solution = createInitialSolution(vehicles, tasks, randGen);
+        System.out.println("[INF] Initial solution cost: " + solution.cost());
 
         // Loop until solution good enough
         int iterCounter = 0;
@@ -57,8 +58,7 @@ public class StochasticLocalSearch {
             }
         } while (true);
 
-
-        System.out.println("MinCost: " + bestSolutions.peekScore());
+        System.out.println("[INF] Best solution cost: " + bestSolutions.peekScore());
         return bestSolutions.getTop().toPlans(vehicles);
     }
 
@@ -72,7 +72,7 @@ public class StochasticLocalSearch {
             return true;
         }
 
-        if (iterCounter >= 100000) {
+        if (iterCounter >= 1000) {
             return true;
         }
 
@@ -109,14 +109,19 @@ public class StochasticLocalSearch {
             // Return the best solution
             return bestSolution;
         }
+        // Else return a random neighbor (or old)
         else {
-            return oldSolution;
+            // neighbors.add(oldSolution);
+            return neighbors.get(randGen.nextInt(neighbors.size()));
         }
 
     }
 
     private List<Solution> chooseNeighbors(Solution solution, List<VarVehicle> vehicles, SplittableRandom randGen) {
         List<Solution> neighbors = new ArrayList<>();
+
+        // Find all vehicles with tasks
+        // VarVehicle taskVehicles =
 
         // Get a random vehicle that holds a task (nextTask != Null)
         VarVehicle randVehicle = null;
@@ -128,7 +133,9 @@ public class StochasticLocalSearch {
         // Create one new solution by transferring the randVehicles next task to all other vehicles
         // under the constraint that the can fit it (capacity constraint).
         for (VarVehicle vehicle: vehicles) {
+            if (vehicle == randVehicle) continue;
             Solution newSolution = changeVehicle(solution, randVehicle, vehicle);
+
             if (newSolution.checkCapacityConstraint(vehicle)) {
                 neighbors.add(newSolution);
             }
@@ -139,15 +146,17 @@ public class StochasticLocalSearch {
         for (int outerIdx = 0; outerIdx < solution.getTasksSize(randVehicle) - 1; outerIdx++) { // Until previous of last
             for (int innerIdx = outerIdx + 1; innerIdx < solution.getTasksSize(randVehicle); innerIdx++) { // Until last
 
-                 // Check if swap is violating the pickUp-Delivery order constraints
+                    // Check if swap is violating the pickUp-Delivery order constraints
                 if (solution.checkPickUpDeliverOrder(randVehicle, outerIdx, innerIdx)) {
                     Solution newSolution = new Solution(solution);
                     newSolution.swapVarTasksFor(randVehicle, outerIdx, innerIdx);
                     newSolution.checkSupps(); // ! Debug
 
+
                     // Check if the weight constraints are satisfied
                     if (newSolution.checkCapacityConstraint(randVehicle)) {
                         neighbors.add(newSolution);
+                        swaps++;
                     }
                 }
             }
@@ -219,46 +228,6 @@ public class StochasticLocalSearch {
 
 
     /**
-     * Run some tests
-     */
-    public List<Plan> dumbTest(List<VarVehicle> vehicles, TaskSet tasks) {
-        VarVehicle v = vehicles.get(0);
-
-        // Change task order test
-        // List<Task> ts = new ArrayList<>();
-        // int counter = 0;
-        // for (Task t: tasks) {
-        //     counter++;
-        //     if (counter < tasks.size() - 4)
-        //         ts.add(t);
-        // }
-        // tasks.removeAll(ts);
-
-        Solution s = new Solution(vehicles);
-        for (Task t : tasks) {
-            s.addVarTask(v, new VarTask(t, Type.PickUp));
-        }
-        for (Task t : tasks) {
-            s.addVarTask(v, new VarTask(t, Type.Delivery));
-        }
-
-        // Loop until solution good enough
-        // SplittableRandom randGen = new SplittableRandom(1);
-        // List<Solution> neighbors = chooseNeighbors(s, vehicles, randGen);
-
-        System.out.println(s);
-        s = changeVehicle(s, vehicles.get(0), vehicles.get(1));
-        System.out.println(s);
-        s.checkSupps();
-
-        s = changeVehicle(s, vehicles.get(0), vehicles.get(1));
-        System.out.println(s);
-        s.checkSupps();
-
-        return s.toPlans(vehicles);
-    }
-
-    /**
      * Assigns the first task of vehicle v1 to vehicle v2. Also moves its supplementary task.
      */
     private Solution changeVehicle(Solution solution, VarVehicle v1, VarVehicle v2) {
@@ -271,8 +240,12 @@ public class StochasticLocalSearch {
         // Remove the first task and its supplementary
         newSolution.removeTaskAndSupplementaryAt(v1, taskPair, 0);
 
+        newSolution.checkSupps(); // ! Debug
+
         // Insert the pickUp as the first task of vehicle v2 and the delivery as the second.
         newSolution.addTaskAndSupplementaryAt(v2, taskPair, 0);
+
+        newSolution.checkSupps(); // ! Debug
 
         // Update the vehicles of the tasks
         newSolution.updateTaskVehicle(taskPair.getLeft(), v2);

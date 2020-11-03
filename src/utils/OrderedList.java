@@ -142,4 +142,5 @@ public class OrderedList<D, S extends Comparable<S>> {
         else
             return this.elements.get(this.elements.size() - 1).getRight();
     }
+
 }

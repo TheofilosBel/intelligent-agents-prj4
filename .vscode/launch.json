@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CodeLens (Launch) - StochasticLocalSearch",
+            "request": "launch",
+            "mainClass": "sls.StochasticLocalSearch",
+            "projectName": "centralized_8b4ddd4e"
+        },
+        {
+            "type": "java",
             "name": "CodeLens (Launch) - Solution",
             "request": "launch",
             "mainClass": "model.Solution",

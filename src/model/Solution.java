@@ -223,7 +223,7 @@ public class Solution {
         for (int idx = 0; idx < tasks.size(); idx++) {
             Pair<VarTask, Integer> pair = tasks.get(idx);
 
-            if (pair.getRight() > t1idx && pair.getRight() < t2idx) {
+            if (pair.getRight() > t1idx && pair.getRight() <= t2idx) {
                 pair.setRight(pair.getRight()-1);
             }
             else if (pair.getRight() > t2idx) {
