@@ -44,4 +44,9 @@ public class VarTask {
         return type + " " + task;
     }
 
+
+    public Type type() {
+        return type;
+    }
+
 }

@@ -53,6 +53,19 @@ public class Solution {
         return this.nextTask.get(v).size();
     }
 
+
+    /**
+     * Return the task for vehicle v with integer taskIdx
+     *
+     * @param v
+     * @param taskIdx
+     * @return
+     */
+    public VarTask getTask(VarVehicle v, Integer taskIdx) {
+        return this.nextTask.get(v).get(taskIdx).getLeft();
+    }
+
+
     /**
      * Check the if the stream of tasks in vehicle v satisfies its capacity constraint.
      *

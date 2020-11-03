@@ -39,7 +39,7 @@ public class StochasticLocalSearch {
         SplittableRandom randGen = new SplittableRandom(1); // !debug
 
         // Create the initial solution
-        Solution solution = createInitialSolution(vehicles, tasks, randGen);
+        Solution solution = createShortestInitialSolution(vehicles, tasks);
         System.out.println("[INF] Initial solution cost: " + solution.cost());
 
         // Loop until solution good enough
@@ -133,11 +133,18 @@ public class StochasticLocalSearch {
         // Create one new solution by transferring the randVehicles next task to all other vehicles
         // under the constraint that the can fit it (capacity constraint).
         for (VarVehicle vehicle: vehicles) {
-            if (vehicle == randVehicle) continue;
+            if (vehicle == randVehicle) continue; // Skip same vehicle
+
+            // Create new solution from changeVehicle
             Solution newSolution = changeVehicle(solution, randVehicle, vehicle);
 
+            // If constraints are met add it to neighbors
             if (newSolution.checkCapacityConstraint(vehicle)) {
+                newSolution.checkSupps(); // ! Debug
                 neighbors.add(newSolution);
+
+                // Change the order of the deliver the task with every possible pickup after that and create a new neighbor
+                // neighbors.addAll(swapDeliveryTask(newSolution, vehicle));
             }
         }
 
@@ -150,11 +157,10 @@ public class StochasticLocalSearch {
                 if (solution.checkPickUpDeliverOrder(randVehicle, outerIdx, innerIdx)) {
                     Solution newSolution = new Solution(solution);
                     newSolution.swapVarTasksFor(randVehicle, outerIdx, innerIdx);
-                    newSolution.checkSupps(); // ! Debug
-
 
                     // Check if the weight constraints are satisfied
                     if (newSolution.checkCapacityConstraint(randVehicle)) {
+                        newSolution.checkSupps(); // ! Debug
                         neighbors.add(newSolution);
                     }
                 }
@@ -164,8 +170,10 @@ public class StochasticLocalSearch {
         return neighbors;
     }
 
-    // Creates the initial solution for the problem by assigning every task to the vehicle with the maximum capacity.
-    public Solution createInitialSolution(List<VarVehicle> vehicles, TaskSet tasks, SplittableRandom randGen) {
+    /**
+     * Creates the initial solution for the problem by assigning every task to the vehicle with the maximum capacity.
+     */
+    public Solution createShortestInitialSolution(List<VarVehicle> vehicles, TaskSet tasks) {
         Solution solution = new Solution(vehicles);
 
         // Find the vehicle with the maximum capacity
@@ -203,8 +211,47 @@ public class StochasticLocalSearch {
         return solution;
     }
 
+    public Solution createOptimalInitialSolution(List<VarVehicle> vehicles, TaskSet tasks) {
+        Solution solution = new Solution(vehicles);
 
-    public Solution createInitialSolution2(List<VarVehicle> vehicles, TaskSet tasks) {
+        // Find the vehicle with the maximum capacity (for problem solvability)
+        VarVehicle maxV = Collections.max(vehicles, Comparator.comparing(s -> s.capacity()));
+
+        // Assign all tasks to the vehicle closest to it
+        for (Task t: tasks) {
+            // Get random vehicle
+            VarVehicle closestVehicle = null;
+            Double minDistance = Double.MAX_VALUE;
+            for (VarVehicle v: vehicles) {
+                double dist = v.startCity().distanceTo(t.pickupCity);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestVehicle = v;
+                }
+            }
+
+            // Try to put it on the closestVehicle
+            if (t.weight <= closestVehicle.capacity()) {
+                solution.addVarTask(closestVehicle, new VarTask(t, Type.PickUp));
+                solution.addVarTask(closestVehicle, new VarTask(t, Type.Delivery));
+            }
+            // If it doesn't fit try the max vehicle
+            else if (t.weight <= maxV.capacity()) {
+                solution.addVarTask(maxV, new VarTask(t, Type.PickUp));
+                solution.addVarTask(maxV, new VarTask(t, Type.Delivery));
+            }
+            else {
+                // The problem is unsolvable if the biggest vehicle cannot carry a task
+                throw new AssertionError("The problem is unsolvable. Initial solution cannot be created.");
+            }
+        }
+
+        return solution;
+    }
+
+
+
+    public Solution createMaxInitialSolution(List<VarVehicle> vehicles, TaskSet tasks) {
         Solution solution = new Solution(vehicles);
 
         // Find the vehicle with the maximum capacity
@@ -239,12 +286,8 @@ public class StochasticLocalSearch {
         // Remove the first task and its supplementary
         newSolution.removeTaskAndSupplementaryAt(v1, taskPair, 0);
 
-        newSolution.checkSupps(); // ! Debug
-
         // Insert the pickUp as the first task of vehicle v2 and the delivery as the second.
         newSolution.addTaskAndSupplementaryAt(v2, taskPair, 0);
-
-        newSolution.checkSupps(); // ! Debug
 
         // Update the vehicles of the tasks
         newSolution.updateTaskVehicle(taskPair.getLeft(), v2);
@@ -253,4 +296,36 @@ public class StochasticLocalSearch {
         return newSolution;
     }
 
+
+
+    /**
+     * Swap the 1st delivery task with all pickUp task after it (care the weight).
+     * @NOTE: The 1st delivery task must be at index 1!
+     *
+     * @param solution
+     * @param vehicle
+     * @return
+     */
+    private List<Solution> swapDeliveryTask(Solution solution, VarVehicle vehicle) {
+        List<Solution> newSolutions = new ArrayList<>();
+        int deliveryIdx = 1;
+
+        // Loop every task from index = 2 and on
+        for (int idx = 2; idx < solution.getTasksSize(vehicle); idx++) {
+
+            if (solution.getTask(vehicle, idx).type() == Type.PickUp) {
+                // Create a new solution for each swap
+                Solution newSolution = new Solution(solution);
+                newSolution.swapVarTasksFor(vehicle, deliveryIdx, idx);
+
+                // Check if the weight constraints are satisfied
+                if (newSolution.checkCapacityConstraint(vehicle)) {
+                    newSolution.checkSupps(); // ! Debug
+                    newSolutions.add(newSolution);
+                }
+            }
+        }
+
+        return newSolutions;
+    }
 }
