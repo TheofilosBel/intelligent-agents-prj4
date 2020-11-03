@@ -72,7 +72,7 @@ public class StochasticLocalSearch {
             return true;
         }
 
-        if (iterCounter >= 1000) {
+        if (iterCounter >= 2000) {
             return true;
         }
 
@@ -156,7 +156,6 @@ public class StochasticLocalSearch {
                     // Check if the weight constraints are satisfied
                     if (newSolution.checkCapacityConstraint(randVehicle)) {
                         neighbors.add(newSolution);
-                        swaps++;
                     }
                 }
             }
