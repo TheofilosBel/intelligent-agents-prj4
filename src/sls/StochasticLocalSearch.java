@@ -20,12 +20,14 @@ import java.util.SplittableRandom;
 public class StochasticLocalSearch {
 
     private Double choiceProbability;
+    private int iterations;
     private long timeout;  // The time that the algorithm has available
     OrderedList<Solution, Double> bestSolutions;
 
-    public StochasticLocalSearch(double choiceProbability, long timeout) {
+    public StochasticLocalSearch(double choiceProbability, int iterations, long timeout) {
         this.bestSolutions = new OrderedList<>(500, OrderType.Acceding);
         this.choiceProbability = choiceProbability;
+        this.iterations = iterations;
         this.timeout = timeout;
     }
 
@@ -73,7 +75,7 @@ public class StochasticLocalSearch {
             return true;
         }
 
-        if (iterCounter >= 2000) {
+        if (iterCounter >= iterations) {
             return true;
         }
 
@@ -211,46 +213,6 @@ public class StochasticLocalSearch {
 
         return solution;
     }
-
-    public Solution createOptimalInitialSolution(List<VarVehicle> vehicles, TaskSet tasks) {
-        Solution solution = new Solution(vehicles);
-
-        // Find the vehicle with the maximum capacity (for problem solvability)
-        VarVehicle maxV = Collections.max(vehicles, Comparator.comparing(s -> s.capacity()));
-
-        // Assign all tasks to the vehicle closest to it
-        for (Task t: tasks) {
-            // Get random vehicle
-            VarVehicle closestVehicle = null;
-            Double minDistance = Double.MAX_VALUE;
-            for (VarVehicle v: vehicles) {
-                double dist = v.startCity().distanceTo(t.pickupCity);
-                if (dist < minDistance) {
-                    minDistance = dist;
-                    closestVehicle = v;
-                }
-            }
-
-            // Try to put it on the closestVehicle
-            if (t.weight <= closestVehicle.capacity()) {
-                solution.addVarTask(closestVehicle, new VarTask(t, Type.PickUp));
-                solution.addVarTask(closestVehicle, new VarTask(t, Type.Delivery));
-            }
-            // If it doesn't fit try the max vehicle
-            else if (t.weight <= maxV.capacity()) {
-                solution.addVarTask(maxV, new VarTask(t, Type.PickUp));
-                solution.addVarTask(maxV, new VarTask(t, Type.Delivery));
-            }
-            else {
-                // The problem is unsolvable if the biggest vehicle cannot carry a task
-                throw new AssertionError("The problem is unsolvable. Initial solution cannot be created.");
-            }
-        }
-
-        return solution;
-    }
-
-
 
     public Solution createMaxInitialSolution(List<VarVehicle> vehicles, TaskSet tasks) {
         Solution solution = new Solution(vehicles);
