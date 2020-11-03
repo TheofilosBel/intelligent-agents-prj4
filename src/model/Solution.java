@@ -279,10 +279,10 @@ public class Solution {
             }
 
             // Add the starting cost from the vehicle's start city to the first task
-            vehicleCost = entry.getKey().startCity().distanceTo( this.getNextTask(entry.getKey()).city());
+            vehicleCost = entry.getKey().startCity().distanceTo(this.getNextTask(entry.getKey()).city());
 
             // Loop all the tasks in a vehicle
-            for (int idx = 0; idx < entry.getValue().size() - 2; idx++) { // -2 because we dont want the last element
+            for (int idx = 0; idx < entry.getValue().size() - 1; idx++) { // -1 because we dont want the last element
                 VarTask task = entry.getValue().get(idx).getLeft();
                 VarTask nextTask = entry.getValue().get(idx + 1).getLeft();
                 vehicleCost += task.city().distanceTo(nextTask.city());
@@ -292,6 +292,33 @@ public class Solution {
         return totalCost;
     }
 
+
+    public void printCost() {
+        Double totalCost = 0D;
+        for (Entry<VarVehicle, List<Pair<VarTask, Integer>>> entry: nextTask.entrySet()) {
+            Double vehicleCost = 0D;
+
+            // skip vehicles with no tasks
+            if (this.getNextTask(entry.getKey()) == null) {
+                continue;
+            }
+
+            // Add the starting cost from the vehicle's start city to the first task
+            vehicleCost = entry.getKey().startCity().distanceTo(this.getNextTask(entry.getKey()).city());
+
+            // Loop all the tasks in a vehicle
+            for (int idx = 0; idx < entry.getValue().size() - 1; idx++) { // -1 because we dont want the last element
+                VarTask task = entry.getValue().get(idx).getLeft();
+                VarTask nextTask = entry.getValue().get(idx + 1).getLeft();
+                vehicleCost += task.city().distanceTo(nextTask.city());
+            }
+            Double vehicleSum = vehicleCost * entry.getKey().costPerKm();
+            System.out.println("-Vehicle Cost: " + vehicleSum);
+            totalCost += vehicleSum;
+        }
+
+        System.out.println("Total cost: " + totalCost);
+    }
 
     /**
      * Create a plan for each vehicle and return a list of all the plans

@@ -1,7 +1,6 @@
 package sls;
 
 import logist.plan.Plan;
-import logist.simulation.Vehicle;
 import logist.task.Task;
 import logist.task.TaskSet;
 import model.VarVehicle;
@@ -39,7 +38,8 @@ public class StochasticLocalSearch {
         SplittableRandom randGen = new SplittableRandom(1); // !debug
 
         // Create the initial solution
-        Solution solution = createShortestInitialSolution(vehicles, tasks);
+        // Solution solution = createShortestInitialSolution(vehicles, tasks);
+        Solution solution = createMaxInitialSolution(vehicles, tasks);
         System.out.println("[INF] Initial solution cost: " + solution.cost());
 
         // Loop until solution good enough
@@ -59,6 +59,7 @@ public class StochasticLocalSearch {
         } while (true);
 
         System.out.println("[INF] Best solution cost: " + bestSolutions.peekScore());
+        bestSolutions.getTop().printCost();
         return bestSolutions.getTop().toPlans(vehicles);
     }
 

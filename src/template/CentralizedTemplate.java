@@ -57,7 +57,7 @@ public class CentralizedTemplate implements CentralizedBehavior {
         timeout_plan = ls.get(LogistSettings.TimeoutKey.PLAN);
 
         // The sls algorithm
-        sls = new StochasticLocalSearch(0.7, timeout_plan);
+        sls = new StochasticLocalSearch(0.9, timeout_plan);
 
         this.topology = topology;
         this.distribution = distribution;
